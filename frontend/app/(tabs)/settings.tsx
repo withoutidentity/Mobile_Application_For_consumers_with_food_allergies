@@ -45,7 +45,7 @@ export default function SettingsScreen() {
     <ScrollView className="flex-1 bg-[#F8F9FA]" contentContainerStyle={{ padding: 16 }}>
       {/* Header */}
       <View className="mb-6">
-        <Text className="text-2xl font-bold text-[#333333] mb-2">Settings</Text>
+        <Text className="text-2xl font-bold text-red-400 mb-2">Settings</Text>
         <Text className="text-base text-[#666666]">Customize your experience</Text>
       </View>
 

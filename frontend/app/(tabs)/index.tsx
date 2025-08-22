@@ -60,7 +60,7 @@ export default function HomeScreen() {
             onPress={handleScanPress}
           >
             <View className="w-16 h-16 rounded-full justify-center items-center mr-4 bg-white/20">
-              <Scan size={32} className="text-white" />
+              <Scan size={32} className="text-black" />
             </View>
             <View className="flex-1">
               <Text className="text-lg font-bold text-white mb-1">

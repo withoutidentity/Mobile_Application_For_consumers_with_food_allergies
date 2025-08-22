@@ -59,7 +59,7 @@ export default function ScannerScreen() {
     return (
       <View style={styles.container}>
         <AlertCircle size={64} color={Colors.primary} style={styles.icon} />
-        <Text style={styles.title}>Camera Permission Required</Text>
+        <Text className='text-2xl font-bold text-center text-red-500 mb-2'>Camera Permission Required</Text>
         <Text style={styles.text}>
           We need camera permission to scan product barcodes. Please grant permission to continue.
         </Text>
