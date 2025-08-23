@@ -1,24 +1,29 @@
 import Button from '@/components/Button';
 import { useUserProfile } from '@/context/UserProfileContext';
+import { useRouter } from "expo-router";
 import { Bell, HelpCircle, Moon, Trash2, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 export default function SettingsScreen() {
-  const { profile, updateProfile, saveProfile } = useUserProfile();
+  const router = useRouter();
+  const { profile, saveProfile } = useUserProfile();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
+  // Toggle Dark Mode
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
     Alert.alert('Coming Soon', 'Dark mode will be available in a future update.');
   };
 
+  // Toggle Notifications
   const handleNotificationsToggle = () => {
     setNotifications(!notifications);
     Alert.alert('Coming Soon', 'Notification settings will be available in a future update.');
   };
 
+  // Clear Allergen Profile
   const handleClearProfile = () => {
     Alert.alert(
       'Clear Profile',
@@ -41,11 +46,24 @@ export default function SettingsScreen() {
     );
   };
 
+  // Logout and go to Login screen
+  const handleLogout = () => {
+    // ถ้ามี token/session ให้เคลียร์ที่นี่ (เช่น AsyncStorage.clear())
+    // เคลียร์ profile
+    saveProfile({
+      allergens: [],
+      dietaryRestrictions: [],
+      name: '',
+      emergencyContact: '',
+    });
+    router.replace('/login'); // ไปหน้า login และ disable back
+  };
+
   return (
     <ScrollView className="flex-1 bg-[#F8F9FA]" contentContainerStyle={{ padding: 16 }}>
       {/* Header */}
       <View className="mb-6">
-        <Text className="text-2xl font-bold text-red-400 mb-2">Settings</Text>
+        <Text className="text-2xl font-bold text-[#666666] mb-2">Settings</Text>
         <Text className="text-base text-[#666666]">Customize your experience</Text>
       </View>
 
@@ -113,6 +131,15 @@ export default function SettingsScreen() {
           onPress={handleClearProfile}
           variant="danger"
           icon={<Trash2 size={16} color="#fff" />}
+        />
+      </View>
+
+      {/* Logout */}
+      <View className="mb-6">
+        <Button
+          title="Logout"
+          onPress={handleLogout} // <-- logout ไปหน้า login
+          variant="primary"
         />
       </View>
 
