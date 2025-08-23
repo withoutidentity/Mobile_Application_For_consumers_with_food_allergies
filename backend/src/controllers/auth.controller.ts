@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client/extension';
+import { PrismaClient } from '../generated/prisma';
 import { generateToken } from '../utils/auth';
 
 const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
@@ -24,6 +24,8 @@ export const register = async (req: Request, res: Response) => {
       data: {
         email,
         password: hashedPassword,
+        name: '', // Provide a default or get from req.body
+        updatedAt: new Date(), // Set to current date/time
       },
     });
 
