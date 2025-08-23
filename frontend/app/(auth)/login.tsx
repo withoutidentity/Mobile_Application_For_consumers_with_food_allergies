@@ -1,58 +1,80 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { useAuth } from "@/context/AuthContext";
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput } from "react-native";
 
 export default function LoginScreen() {
-  const { login } = useAuth();
-  const [username, setUsername] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    if (username && password) {
-      await login("mocked-jwt-token"); // mock token
-    }
+  const handleLogin = () => {
+    console.log("Login with:", email, password);
+    router.replace("/(tabs)");
   };
 
+  const { width, height } = Dimensions.get("window");
+
   return (
-    <View className="flex-1 justify-center items-center bg-white px-6">
-      <View className="w-full max-w-md bg-gray-50 rounded-2xl p-8 shadow-md">
-        <Text className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Login
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      className="flex-1 bg-background"
+    >
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingVertical: height * 0.05,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* รูปภาพ */}
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={{
+            width: width * 0.5,
+            height: width * 0.5,
+            marginBottom: 20,
+          }}
+          resizeMode="contain"
+        />
+
+        <Text className="text-2xl font-bold mb-5 text-center text-text">
+          เข้าสู่ระบบ
         </Text>
 
         <TextInput
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          className="border border-gray-300 rounded-xl px-4 py-3 mb-4 text-base"
+          placeholder="อีเมล"
+          value={email}
+          onChangeText={setEmail}
+          className="border border-border rounded-lg p-3 mb-3 text-text"
+          style={{ width: width * 0.85, maxWidth: 400 }}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
         <TextInput
-          placeholder="Password"
-          secureTextEntry
+          placeholder="รหัสผ่าน"
           value={password}
           onChangeText={setPassword}
-          className="border border-gray-300 rounded-xl px-4 py-3 mb-6 text-base"
+          secureTextEntry
+          className="border border-border rounded-lg p-3 mb-3 text-text"
+          style={{ width: width * 0.85, maxWidth: 400 }}
         />
 
-        <TouchableOpacity
+        <Pressable
+          className="bg-primary p-4 rounded-lg mt-4 items-center"
+          style={{ width: width * 0.85, maxWidth: 400 }}
           onPress={handleLogin}
-          className="bg-emerald-600 py-3 rounded-xl"
         >
-          <Text className="text-center text-white font-semibold text-lg">
-            Login
-          </Text>
-        </TouchableOpacity>
+          <Text className="text-white font-bold text-center">เข้าสู่ระบบ</Text>
+        </Pressable>
 
-        <View className="flex-row justify-center mt-4">
-          <Text className="text-gray-600">Don’t have an account? </Text>
-          <Link href="/(auth)/register" asChild>
-            <TouchableOpacity>
-              <Text className="text-emerald-600 font-semibold">Register</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
-    </View>
+        <Pressable onPress={() => router.push("/register")}>
+          <Text className="mt-4 text-center text-primary">
+            ยังไม่มีบัญชี? สมัครสมาชิก
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
