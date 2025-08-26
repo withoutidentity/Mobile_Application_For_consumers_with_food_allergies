@@ -24,7 +24,7 @@ export const register = async (req: Request, res: Response) => {
       data: {
         email,
         password: hashedPassword,
-        name: '', // Provide a default or get from req.body
+        name, // Provide a default or get from req.body
         updatedAt: new Date(), // Set to current date/time
       },
     });

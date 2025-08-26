@@ -1,20 +1,44 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput } from "react-native";
+import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, Alert } from "react-native";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    if (password !== confirmPassword) {
-      alert("รหัสผ่านไม่ตรงกัน");
+  const handleRegister = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
-    console.log("Register with:", email, password);
-    router.replace("/(tabs)");
+    if (password !== confirmPassword) {
+      Alert.alert("รหัสผ่านไม่ตรงกัน");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // ตัวอย่าง: บันทึก token หรือ user info ใน local storage (ถ้ามี)
+        // await AsyncStorage.setItem('token', data.token);
+        router.replace("/(tabs)");
+      } else {
+        Alert.alert("สมัครสมาชิกไม่สำเร็จ", data.message || "เกิดข้อผิดพลาด");
+      }
+    } catch (error) {
+      Alert.alert("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ดึงความกว้างและสูงของหน้าจอ
@@ -50,6 +74,13 @@ export default function RegisterScreen() {
         </Text>
 
         <TextInput
+          placeholder="ชื่อ"
+          value={name}
+          onChangeText={setName}
+          className="border border-border rounded-lg p-3 mb-3 text-text"
+          style={{ width: width * 0.85, maxWidth: 400 }}
+        />
+        <TextInput
           placeholder="อีเมล"
           value={email}
           onChangeText={setEmail}
@@ -77,10 +108,15 @@ export default function RegisterScreen() {
 
         <Pressable
           className="bg-primary p-4 rounded-lg mt-4 items-center"
-          style={{ width: width * 0.85, maxWidth: 400 }}
+          style={{ width: width * 0.85, maxWidth: 400, opacity: loading ? 0.7 : 1 }}
           onPress={handleRegister}
+          disabled={loading}
         >
-          <Text className="text-white font-bold text-center">สมัครสมาชิก</Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-center">สมัครสมาชิก</Text>
+          )}
         </Pressable>
 
         <Pressable onPress={() => router.push("/login")}>

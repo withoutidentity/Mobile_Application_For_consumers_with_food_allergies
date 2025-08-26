@@ -1,15 +1,38 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput } from "react-native";
+import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, Alert } from "react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log("Login with:", email, password);
-    router.replace("/(tabs)");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("กรุณากรอกอีเมลและรหัสผ่าน");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // ตัวอย่าง: บันทึก token หรือ user info ใน local storage (ถ้ามี)
+        // await AsyncStorage.setItem('token', data.token);
+        router.replace("/(tabs)");
+      } else {
+        Alert.alert("เข้าสู่ระบบไม่สำเร็จ", data.message || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      }
+    } catch (error) {
+      Alert.alert("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const { width, height } = Dimensions.get("window");
@@ -63,10 +86,15 @@ export default function LoginScreen() {
 
         <Pressable
           className="bg-primary p-4 rounded-lg mt-4 items-center"
-          style={{ width: width * 0.85, maxWidth: 400 }}
+          style={{ width: width * 0.85, maxWidth: 400, opacity: loading ? 0.7 : 1 }}
           onPress={handleLogin}
+          disabled={loading}
         >
-          <Text className="text-white font-bold text-center">เข้าสู่ระบบ</Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-center">เข้าสู่ระบบ</Text>
+          )}
         </Pressable>
 
         <Pressable onPress={() => router.push("/register")}>
