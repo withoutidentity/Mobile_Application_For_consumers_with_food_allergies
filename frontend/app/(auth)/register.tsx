@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, Alert } from "react-native";
+import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, View, } from "react-native";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -10,15 +10,22 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // state สำหรับเก็บข้อความ error
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-      return;
-    }
-    if (password !== confirmPassword) {
-      Alert.alert("รหัสผ่านไม่ตรงกัน");
-      return;
-    }
+    const newErrors: { [key: string]: string } = {};
+
+    if (!name) newErrors.name = "กรุณากรอกชื่อ";
+    if (!email) newErrors.email = "กรุณากรอกอีเมล";
+    if (!password) newErrors.password = "กรุณากรอกรหัสผ่าน";
+    if (!confirmPassword) newErrors.confirmPassword = "กรุณายืนยันรหัสผ่าน";
+    if (password && confirmPassword && password !== confirmPassword)
+      newErrors.confirmPassword = "รหัสผ่านไม่ตรงกัน";
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
     setLoading(true);
     try {
       const res = await fetch("http://localhost:3000/auth/register", {
@@ -28,20 +35,17 @@ export default function RegisterScreen() {
       });
       const data = await res.json();
       if (res.ok) {
-        // ตัวอย่าง: บันทึก token หรือ user info ใน local storage (ถ้ามี)
-        // await AsyncStorage.setItem('token', data.token);
         router.replace("/(tabs)");
       } else {
-        Alert.alert("สมัครสมาชิกไม่สำเร็จ", data.message || "เกิดข้อผิดพลาด");
+        setErrors({ general: data.message || "สมัครสมาชิกไม่สำเร็จ" });
       }
     } catch (error) {
-      Alert.alert("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+      setErrors({ general: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้" });
     } finally {
       setLoading(false);
     }
   };
 
-  // ดึงความกว้างและสูงของหน้าจอ
   const { width, height } = Dimensions.get("window");
 
   return (
@@ -54,18 +58,13 @@ export default function RegisterScreen() {
           flexGrow: 1,
           justifyContent: "center",
           alignItems: "center",
-          paddingVertical: height * 0.05, // ปรับ padding ตามขนาดหน้าจอ
+          paddingVertical: height * 0.05,
         }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* รูปภาพ */}
         <Image
           source={require("../../assets/images/logo.png")}
-          style={{
-            width: width * 0.5,   // ครึ่งหน้าจอ
-            height: width * 0.5,  // ทำให้เป็นสี่เหลี่ยม
-            marginBottom: 20,
-          }}
+          style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
           resizeMode="contain"
         />
 
@@ -73,49 +72,103 @@ export default function RegisterScreen() {
           สมัครสมาชิก
         </Text>
 
-        <TextInput
-          placeholder="ชื่อ"
-          value={name}
-          onChangeText={setName}
-          className="border border-border rounded-lg p-3 mb-3 text-text"
-          style={{ width: width * 0.85, maxWidth: 400 }}
-        />
-        <TextInput
-          placeholder="อีเมล"
-          value={email}
-          onChangeText={setEmail}
-          className="border border-border rounded-lg p-3 mb-3 text-text"
-          style={{ width: width * 0.85, maxWidth: 400 }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TextInput
-          placeholder="รหัสผ่าน"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          className="border border-border rounded-lg p-3 mb-3 text-text"
-          style={{ width: width * 0.85, maxWidth: 400 }}
-        />
-        <TextInput
-          placeholder="ยืนยันรหัสผ่าน"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          className="border border-border rounded-lg p-3 mb-3 text-text"
-          style={{ width: width * 0.85, maxWidth: 400 }}
-        />
+        {/* Name Input */}
+        <View className="w-[85%] max-w-[400px] mb-3">
+          <TextInput
+            placeholder="ชื่อ"
+            value={name}
+            onChangeText={(text) => {
+              setName(text);
+              setErrors((prev) => ({ ...prev, name: "" }));
+            }}
+            className="border border-border rounded-lg p-3 text-black"
+            placeholderTextColor="#999"
+          />
+          {errors.name && (
+            <Text className="text-red-500 text-right mt-1">{errors.name}</Text>
+          )}
+        </View>
 
+        {/* Email Input */}
+        <View className="w-[85%] max-w-[400px] mb-3">
+          <TextInput
+            placeholder="อีเมล"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              setErrors((prev) => ({ ...prev, email: "" }));
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            className="border border-border rounded-lg p-3 text-black"
+            placeholderTextColor="#999"
+          />
+          {errors.email && (
+            <Text className="text-red-500 text-right mt-1">{errors.email}</Text>
+          )}
+        </View>
+
+        {/* Password Input */}
+        <View className="w-[85%] max-w-[400px] mb-3">
+          <TextInput
+            placeholder="รหัสผ่าน"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              setErrors((prev) => ({ ...prev, password: "" }));
+            }}
+            secureTextEntry
+            className="border border-border rounded-lg p-3 text-black"
+            placeholderTextColor="#999"
+          />
+          {errors.password && (
+            <Text className="text-red-500 text-right mt-1">
+              {errors.password}
+            </Text>
+          )}
+        </View>
+
+        {/* Confirm Password Input */}
+        <View className="w-[85%] max-w-[400px] mb-3">
+          <TextInput
+            placeholder="ยืนยันรหัสผ่าน"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+            }}
+            secureTextEntry
+            className="border border-border rounded-lg p-3 text-black"
+            placeholderTextColor="#999"
+          />
+          {errors.confirmPassword && (
+            <Text className="text-red-500 text-right mt-1">
+              {errors.confirmPassword}
+            </Text>
+          )}
+        </View>
+
+        {/* General Error */}
+        {errors.general && (
+          <View className="w-[85%] max-w-[400px] mb-3">
+            <Text className="text-red-500 text-right">{errors.general}</Text>
+          </View>
+        )}
+
+        {/* Register Button */}
         <Pressable
-          className="bg-primary p-4 rounded-lg mt-4 items-center"
-          style={{ width: width * 0.85, maxWidth: 400, opacity: loading ? 0.7 : 1 }}
           onPress={handleRegister}
           disabled={loading}
+          className={`w-[85%] max-w-[400px] bg-primary p-4 rounded-lg items-center mt-4 ${
+            loading ? "opacity-70" : "opacity-100"
+          }`}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-white font-bold text-center">สมัครสมาชิก</Text>
+            <Text className="text-white font-bold text-center">
+              สมัครสมาชิก
+            </Text>
           )}
         </Pressable>
 
