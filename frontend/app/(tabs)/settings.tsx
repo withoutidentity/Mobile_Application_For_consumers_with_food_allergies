@@ -11,19 +11,16 @@ export default function SettingsScreen() {
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
-  // Toggle Dark Mode
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
     Alert.alert('Coming Soon', 'Dark mode will be available in a future update.');
   };
 
-  // Toggle Notifications
   const handleNotificationsToggle = () => {
     setNotifications(!notifications);
     Alert.alert('Coming Soon', 'Notification settings will be available in a future update.');
   };
 
-  // Clear Allergen Profile
   const handleClearProfile = () => {
     Alert.alert(
       'Clear Profile',
@@ -46,17 +43,14 @@ export default function SettingsScreen() {
     );
   };
 
-  // Logout and go to Login screen
   const handleLogout = () => {
-    // ถ้ามี token/session ให้เคลียร์ที่นี่ (เช่น AsyncStorage.clear())
-    // เคลียร์ profile
     saveProfile({
       allergens: [],
       dietaryRestrictions: [],
       name: '',
       emergencyContact: '',
     });
-    router.replace('/login'); // ไปหน้า login และ disable back
+    router.replace('/login');
   };
 
   return (
@@ -65,6 +59,18 @@ export default function SettingsScreen() {
       <View className="mb-6">
         <Text className="text-2xl font-bold text-[#666666] mb-2">Settings</Text>
         <Text className="text-base text-[#666666]">Customize your experience</Text>
+      </View>
+
+      {/* Profile Settings - moved to top */}
+      <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
+        <Text className="text-lg font-semibold text-[#333333] mb-4">Profile</Text>
+        <Pressable
+          className="flex-row items-center py-3"
+          onPress={() => router.push("/allergen-profile")}
+        >
+          <User size={20} color="#333333" className="mr-3" />
+          <Text className="text-base text-[#333333]">Allergen Profile</Text>
+        </Pressable>
       </View>
 
       {/* Appearance */}
@@ -138,7 +144,7 @@ export default function SettingsScreen() {
       <View className="mb-6">
         <Button
           title="Logout"
-          onPress={handleLogout} // <-- logout ไปหน้า login
+          onPress={handleLogout}
           variant="primary"
         />
       </View>
