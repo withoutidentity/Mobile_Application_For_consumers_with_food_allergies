@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { UserProfileProvider } from "@/context/UserProfileContext";
 import { StatusBar } from "expo-status-bar";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { ActivityIndicator, View } from "react-native";
 import "./global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -13,12 +14,20 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { token } = useAuth();
+  const { token, loading } = useAuth();
+
+  if (loading) { 
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>)
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {token ? (
         <Stack.Screen name="(tabs)" />
+
       ) : (
         <Stack.Screen name="(auth)" />
       )}

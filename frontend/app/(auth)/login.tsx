@@ -1,10 +1,12 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, View,} from "react-native";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const { saveToken } = useAuth();
+    const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -28,6 +30,7 @@ export default function LoginScreen() {
       });
       const data = await res.json();
       if (res.ok) {
+        saveToken(data.token);
         router.replace("/(tabs)");
       } else {
         setErrors({ general: data.message || "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });

@@ -1,46 +1,86 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+} from "react";
+
+const STORAGE_KEY = "auth_token";
 
 type AuthContextType = {
   token: string | null;
-  login: (token: string) => Promise<void>;
-  logout: () => Promise<void>;
+  loading: boolean;
+  saveToken: (token: string) => Promise<void>;
+  removeToken: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  token: null,
+  loading: true,
+  saveToken: async () => {},
+  removeToken: async () => {},
+});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const loadToken = async () => {
-      const saved = await AsyncStorage.getItem("token");
-      if (saved) setToken(saved);
-      setLoading(false);
-    };
     loadToken();
   }, []);
 
-  const login = async (newToken: string) => {
-    await AsyncStorage.setItem("token", newToken);
-    setToken(newToken);
+  useEffect(() => {
+    if (!loading) {
+      if (token) {
+        router.replace("/(tabs)");
+      } else {
+        router.replace("/login");
+      }
+    }
+  }, [token, loading, router]);
+
+  const loadToken = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem(STORAGE_KEY);
+      if (storedToken) {
+        setToken(storedToken);
+      }
+    } catch (error) {
+      console.error("Failed to load token:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = async () => {
-    await AsyncStorage.removeItem("token");
+  const saveToken = async (newToken: string) => {
+    setToken(newToken);
+    await AsyncStorage.setItem(STORAGE_KEY, newToken);
+  };
+
+  const removeToken = async () => {
     setToken(null);
+    await AsyncStorage.removeItem(STORAGE_KEY);
+  };
+
+  const authContextValue = {
+    token,
+    loading,
+    saveToken,
+    removeToken,
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
-      {!loading && children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be inside AuthProvider");
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
   return ctx;
 };

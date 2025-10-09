@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, View, } from "react-native";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     const newErrors: { [key: string]: string } = {};
+    const { saveToken } = useAuth();
 
     if (!name) newErrors.name = "กรุณากรอกชื่อ";
     if (!email) newErrors.email = "กรุณากรอกอีเมล";
@@ -35,6 +37,7 @@ export default function RegisterScreen() {
       });
       const data = await res.json();
       if (res.ok) {
+        saveToken(data.token);
         router.replace("/(tabs)");
       } else {
         setErrors({ general: data.message || "สมัครสมาชิกไม่สำเร็จ" });
