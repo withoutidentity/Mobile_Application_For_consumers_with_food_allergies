@@ -2,9 +2,11 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '../generated/prisma';
-import { generateToken } from '../utils/auth';
 
 const prisma = new PrismaClient();
+
+const accessSecret = process.env.ACCESS_TOKEN_SECRET!
+const refreshSecret = process.env.REFRESH_TOKEN_SECRET!
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -29,9 +31,7 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    const token = generateToken(user.id);
-
-    res.status(201).json({ user, token });
+    res.json({ message: 'User registered', user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Registration failed' });
@@ -58,9 +58,15 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = generateToken(user.id);
+    const accessToken = jwt.sign({ id: user.id }, accessSecret, { expiresIn: '15m' })
+    const refreshToken = jwt.sign({ id: user.id }, refreshSecret, { expiresIn: '7d' })
 
-    res.json({ user, token });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    })
+
+    res.json({ accessToken, refreshToken })
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Login failed' });
