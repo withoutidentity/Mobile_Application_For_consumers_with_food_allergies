@@ -1,7 +1,13 @@
 import { Tabs } from "expo-router";
-import { AlertCircle, Home, Settings, MessageCircle } from "lucide-react-native";
+import {
+  AlertCircle,
+  Home,
+  Settings,
+  MessageCircle,
+  Scan,
+} from "lucide-react-native";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 
 export default function TabLayout() {
   return (
@@ -16,11 +22,14 @@ export default function TabLayout() {
         ),
         tabBarStyle: {
           height: 60,
+          paddingBottom: 6,
+          paddingTop: 6,
         },
         tabBarActiveTintColor: "#2A9D8F",
         tabBarInactiveTintColor: "#ccc",
       }}
     >
+      {/* 🏠 Home */}
       <Tabs.Screen
         name="index"
         options={{
@@ -28,13 +37,37 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
+
       <Tabs.Screen
-        name="profile"
+        name="scan"
         options={{
-          title: "Chat",
-          tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,
+          title: "Scan",
+          tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
+          tabBarButton: ({ onPress }) => (
+            <TouchableOpacity
+              onPress={onPress}
+              style={{
+                top: -15,
+                backgroundColor: "#2A9D8F",
+                borderRadius: 40,
+                width: 70,
+                height: 70,
+                justifyContent: "center",
+                alignItems: "center",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.3,
+                shadowRadius: 3,
+                elevation: 5,
+              }}
+            >
+              <Scan size={36} color="white" />
+            </TouchableOpacity>
+          ),
         }}
       />
+
+      {/* 💊 Symptoms */}
       <Tabs.Screen
         name="guide"
         options={{
@@ -42,6 +75,17 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <AlertCircle size={24} color={color} />,
         }}
       />
+
+      {/* 💬 Chat */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Chat",
+          tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,
+        }}
+      />
+
+      {/* ⚙️ Settings */}
       <Tabs.Screen
         name="settings"
         options={{
