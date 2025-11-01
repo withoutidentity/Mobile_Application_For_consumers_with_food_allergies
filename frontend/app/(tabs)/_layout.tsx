@@ -38,8 +38,18 @@ export default function TabLayout() {
         }}
       />
 
+      {/* 💊 Symptoms */}
       <Tabs.Screen
-        name="scan"
+        name="guide"
+        options={{
+          title: "Symptoms",
+          tabBarIcon: ({ color }) => <AlertCircle size={24} color={color} />,
+        }}
+      />
+
+      {/* 📷 Scan */}
+      <Tabs.Screen
+        name="scanner"
         options={{
           title: "Scan",
           tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
@@ -67,18 +77,9 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 💊 Symptoms */}
-      <Tabs.Screen
-        name="guide"
-        options={{
-          title: "Symptoms",
-          tabBarIcon: ({ color }) => <AlertCircle size={24} color={color} />,
-        }}
-      />
-
       {/* 💬 Chat */}
       <Tabs.Screen
-        name="profile"
+        name="chat"
         options={{
           title: "Chat",
           tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,

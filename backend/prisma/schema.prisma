@@ -8,14 +8,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Severity {
+  LOW        // เล็กน้อย
+  MEDIUM     // ปานกลาง
+  HIGH       // รุนแรงมาก
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   password     String
   name         String
+  allergies   UserAllergy[]  // ความสัมพันธ์กับสารก่อภูมิแพ้ที่ผู้ใช้แพ้
+  histories   ScanHistory[]  // ประวัติการสแกนสินค้า
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime @updatedAt
   refreshToken String?
 
   @@map("users")
+}
+
+model Allergen {
+  id           Int               @id @default(autoincrement())
+  name         String            // ชื่อสารก่อภูมิแพ้ (ไทย)
+  altNames     String?           // ชื่ออื่นๆ เช่น Peanut, Gluten
+  defaultLevel Severity           // ระดับความรุนแรงโดยทั่วไป
+  products     ProductAllergen[]  // สินค้าที่มีสารนี้
+  users        UserAllergy[]      // ผู้ใช้ที่แพ้สารนี้
+}
+
+model Product {
+  id          Int                @id @default(autoincrement())
+  barcode     String             @unique
+  name        String
+  brand       String?
+  category    String?
+  imageUrl    String?
+  ingredients String[]           // ส่วนประกอบทั้งหมด
+  allergens   ProductAllergen[]  // ความสัมพันธ์กับสารก่อภูมิแพ้
+  histories   ScanHistory[]      // ประวัติการสแกน
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model ProductAllergen {
+  id          Int        @id @default(autoincrement())
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   Int
+  allergen    Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  allergenId  Int
+}
+
+model UserAllergy {
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  allergen    Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  allergenId  Int
+  severity    Severity    // ระดับความรุนแรงที่ผู้ใช้ระบุเอง
+}
+
+model ScanHistory {
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   Int
+  scannedAt   DateTime   @default(now())
 }

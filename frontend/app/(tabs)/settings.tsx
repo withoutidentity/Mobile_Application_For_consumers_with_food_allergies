@@ -4,9 +4,11 @@ import { useRouter } from "expo-router";
 import { Bell, HelpCircle, Moon, Trash2, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { useAuth } from "@/context/AuthContext";
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { removeToken } = useAuth();
   const { profile, saveProfile } = useUserProfile();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
@@ -44,13 +46,7 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    saveProfile({
-      allergens: [],
-      dietaryRestrictions: [],
-      name: '',
-      emergencyContact: '',
-    });
-    router.replace('/login');
+    removeToken();
   };
 
   return (

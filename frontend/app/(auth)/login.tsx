@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function LoginScreen() {
   const router = useRouter();
   const { saveToken } = useAuth();
-    const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +30,7 @@ export default function LoginScreen() {
       });
       const data = await res.json();
       if (res.ok) {
-        saveToken(data.token);
+        await saveToken(data.accessToken); // await เพื่อให้แน่ใจว่า token ถูก set ก่อน AuthContext ทำงาน
         router.replace("/(tabs)");
       } else {
         setErrors({ general: data.message || "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });

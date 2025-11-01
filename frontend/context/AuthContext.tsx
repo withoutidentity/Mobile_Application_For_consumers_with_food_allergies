@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import React, {
   createContext,
   useState,
@@ -27,20 +27,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     loadToken();
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      if (token) {
-        router.replace("/(tabs)");
-      } else {
-        router.replace("/login");
-      }
+    console.log(`[AuthContext] useEffect triggered. Loading: ${loading}, Token: ${!!token}, Segments: ${segments.join('/')}`);
+    // รอให้การโหลด token ครั้งแรกเสร็จก่อน (loading === false)
+    if (loading) {
+      console.log("[AuthContext] Still loading, skipping redirect logic.");
+      return;
     }
-  }, [token, loading, router]);
+
+    const inTabsGroup = segments[0] === "(tabs)";
+    console.log(`[AuthContext] Is in (tabs) group? ${inTabsGroup}`);
+
+    // Redirect logic นี้จะทำงานเฉพาะตอนเปิดแอปครั้งแรก หรือตอน logout
+    // การ redirect ตอน login จะถูกจัดการใน saveToken()
+    if (token && !inTabsGroup) {
+      console.log("[AuthContext] Has token, but not in tabs group. Redirecting to /(tabs)...");
+      // router.replace("/(tabs)");
+    } else if (!token && inTabsGroup) {
+      console.log("[AuthContext] No token, but in tabs group. Redirecting to /login...");
+      // ถ้าไม่มี token แต่อยู่ในหน้า (tabs), ให้ redirect ไป login
+      router.replace("/login");
+    }
+  }, [token, loading, segments, router]);
 
   const loadToken = async () => {
     try {
@@ -56,13 +70,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const saveToken = async (newToken: string) => {
-    setToken(newToken);
     await AsyncStorage.setItem(STORAGE_KEY, newToken);
+    // อัปเดต state ก่อน
+    setToken(newToken);
+    // แล้วสั่ง redirect ไปหน้าหลักทันที
+    // router.replace("/(tabs)");
   };
 
   const removeToken = async () => {
-    setToken(null);
     await AsyncStorage.removeItem(STORAGE_KEY);
+    setToken(null);
+    // เมื่อ logout ให้กลับไปหน้า login
+    router.replace("/login");
   };
 
   const authContextValue = {

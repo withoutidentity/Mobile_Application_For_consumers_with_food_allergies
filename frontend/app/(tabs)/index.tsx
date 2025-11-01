@@ -14,7 +14,7 @@ export default function HomeScreen() {
   const [recentlyScanned] = useState(mockProducts.slice(0, 3));
 
   const handleScanPress = () => router.push("/scanner");
-  const handleSetupProfile = () => router.push("/profile");
+  const handleSetupProfile = () => router.push("/allergen-profile");
 
   return (
     <ScrollView className="flex-1 bg-background p-4">
@@ -125,7 +125,7 @@ export default function HomeScreen() {
                 </Text>
                 <Button
                   title="Manage Allergens"
-                  onPress={() => router.push("/profile")}
+                  onPress={() => router.push("/allergen-profile")}
                   variant="outline"
                   size="small"
                 />
@@ -137,7 +137,7 @@ export default function HomeScreen() {
                 </Text>
                 <Button
                   title="Add Allergens"
-                  onPress={() => router.push("/profile")}
+                  onPress={() => router.push("/allergen-profile")}
                   variant="primary"
                   size="small"
                 />
