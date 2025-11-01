@@ -56,9 +56,9 @@ export default function ChatBotScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       {/* Header */}
-      <View className="bg-teal-600 h-12 flex-row items-center px-4">
+      {/* <View className="bg-teal-600 h-12 flex-row items-center px-4">
         <Text className="text-white text-lg font-semibold">ChatBot</Text>
-      </View>
+      </View> */}
 
       {/* Messages */}
       <FlatList

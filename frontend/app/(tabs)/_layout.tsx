@@ -80,7 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: "chat",
+          title: "Chat",
           tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,
         }}
       />
