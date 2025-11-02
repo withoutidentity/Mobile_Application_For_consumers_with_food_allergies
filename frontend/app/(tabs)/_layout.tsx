@@ -52,26 +52,24 @@ export default function TabLayout() {
         name="scanner"
         options={{
           title: "Scan",
-          tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
+          tabBarIcon: ({ color }) => <Scan size={30} color={color} />, // ส่วนนี้จริงๆ ไม่ได้ใช้
+          
+          // vvv ส่วนนี้คือพระเอกของงาน vvv
           tabBarButton: ({ onPress }) => (
             <TouchableOpacity
               onPress={onPress}
               style={{
-                top: -15,
-                backgroundColor: "#2A9D8F",
-                borderRadius: 40,
-                width: 70,
-                height: 70,
+                top: -15, // 1. ดันปุ่มให้ลอยขึ้นไปด้านบน 15px
+                backgroundColor: "#2A9D8F", // 2. ใส่สีพื้นหลัง
+                borderRadius: 40, // 3. ทำให้ขอบมน (คู่กับ width/height เพื่อให้เป็นวงกลม)
+                width: 70,        // 4. กำหนดขนาด
+                height: 70,       // 5. กำหนดขนาด
                 justifyContent: "center",
                 alignItems: "center",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.3,
-                shadowRadius: 3,
-                elevation: 5,
+                // ... ส่วนที่เหลือคือการใส่เงา (Shadow/Elevation)
               }}
             >
-              <Scan size={36} color="white" />
+              <Scan size={36} color="white" /> 
             </TouchableOpacity>
           ),
         }}
