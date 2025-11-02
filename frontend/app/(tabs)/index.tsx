@@ -22,7 +22,7 @@ export default function HomeScreen() {
       <View className="mb-6">
         <Text className="text-2xl font-bold text-center">Can I Eat This?</Text>
         <Text className="text-base text-textLight">
-          {/* ถ่ายรูปอาหารเพื่อตรวจสอบว่ามีสารก่อภูมิแพ้หรือไม่ */}
+          ถ่ายรูปอาหารเพื่อตรวจสอบว่ามีสารก่อภูมิแพ้หรือไม่
         </Text>
       </View>
 
@@ -55,7 +55,7 @@ export default function HomeScreen() {
       ) : (
         <>
           {/* Scan Button */}
-          {/* <Pressable
+          <Pressable
             className="flex-row rounded-xl p-4 items-center mb-4 shadow bg-primary"
             onPress={handleScanPress}
           >
@@ -70,7 +70,7 @@ export default function HomeScreen() {
                 ตรวจสอบว่าปลอดภัยสำหรับคุณหรือไม่
               </Text>
             </View>
-          </Pressable> */}
+          </Pressable>
 
           {/* Search Button */}
           <View className="flex-row rounded-xl p-4 items-center mb-6 shadow bg-secondary">
