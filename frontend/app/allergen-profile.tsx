@@ -35,34 +35,21 @@ export default function AllergenProfileScreen() {
 
   if (showOnboarding) {
     return (
-      <View className="flex-1 bg-white">
-        {/* Custom Header (เพิ่มส่วนนี้เข้ามา) */}
-        <View className="bg-teal-600 h-12 flex-row items-center px-4">
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text className="text-white text-lg font-semibold ml-3">
-            ตั้งค่าโปรไฟล์
-          </Text>
-        </View>
-
-        {/* เนื้อหาเดิม */}
-        <ScrollView className="flex-1 bg-white">
-          <EmptyState
-            icon={<User size={64} color="#2A9D8F" />}
-            title="ตั้งค่าโปรไฟล์สารก่อภูมิแพ้ของคุณ"
-            message="เลือกสารก่อภูมิแพ้ที่ส่งผลต่อคุณ เพื่อให้เราช่วยระบุอาหารที่ปลอดภัย คุณสามารถอัปเดตรายการนี้ได้ตลอดเวลา"
-            action={
-              <Button
-                title="เริ่มต้นการใช้งาน"
-                onPress={() => setShowOnboarding(false)}
-                variant="primary"
-                size="large"
-              />
-            }
-          />
-        </ScrollView>
-      </View>
+      <ScrollView className="flex-1 bg-white">
+        <EmptyState
+          icon={<User size={64} color="#2A9D8F" />}
+          title="ตั้งค่าโปรไฟล์สารก่อภูมิแพ้ของคุณ"
+          message="เลือกสารก่อภูมิแพ้ที่ส่งผลต่อคุณ เพื่อให้เราช่วยระบุอาหารที่ปลอดภัย คุณสามารถอัปเดตรายการนี้ได้ตลอดเวลา"
+          action={
+            <Button
+              title="เริ่มต้นการใช้งาน"
+              onPress={() => setShowOnboarding(false)}
+              variant="primary"
+              size="large"
+            />
+          }
+        />
+      </ScrollView>
     );
   }
 

@@ -22,6 +22,7 @@ export default function HomeScreen() {
   }, []);
 
   const handleScanPress = () => router.push("/scanner");
+  const handleSearchPress = () => router.push("/search"); // ⭐️ 1. เพิ่มฟังก์ชันนี้
   const handleSetupProfile = () => router.push("/allergen-profile");
 
   return (
@@ -30,7 +31,7 @@ export default function HomeScreen() {
       <View className="mb-6">
         <Text className="text-2xl font-bold text-center">Can I Eat This?</Text>
         <Text className="text-base text-textLight">
-          {/* ถ่ายรูปอาหารเพื่อตรวจสอบว่ามีสารก่อภูมิแพ้หรือไม่ */}
+          ถ่ายรูปอาหารเพื่อตรวจสอบว่ามีสารก่อภูมิแพ้หรือไม่
         </Text>
       </View>
 
@@ -63,7 +64,7 @@ export default function HomeScreen() {
       ) : (
         <>
           {/* Scan Button */}
-          {/* <Pressable
+          <Pressable
             className="flex-row rounded-xl p-4 items-center mb-4 shadow bg-primary"
             onPress={handleScanPress}
           >
@@ -78,10 +79,14 @@ export default function HomeScreen() {
                 ตรวจสอบว่าปลอดภัยสำหรับคุณหรือไม่
               </Text>
             </View>
-          </Pressable> */}
+          </Pressable>
 
           {/* Search Button */}
-          <View className="flex-row rounded-xl p-4 items-center mb-6 shadow bg-secondary">
+          {/* ⭐️ 2. เปลี่ยนจาก <View> เป็น <Pressable> และเพิ่ม onPress */}
+          <Pressable
+            className="flex-row rounded-xl p-4 items-center mb-6 shadow bg-secondary"
+            onPress={handleSearchPress}
+          >
             <View className="w-12 h-12 rounded-full justify-center items-center mr-4 bg-white/20">
               <Search size={24} className="text-white" />
             </View>
@@ -93,7 +98,7 @@ export default function HomeScreen() {
                 ค้นหาสินค้าที่ปลอดภัย
               </Text>
             </View>
-          </View>
+          </Pressable>
 
           {/* Recently Scanned */}
           <View className="mb-6">
