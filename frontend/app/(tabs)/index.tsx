@@ -56,7 +56,7 @@ export default function HomeScreen() {
       ) : (
         <>
           {/* Scan Button */}
-          <Pressable
+          {/* <Pressable
             className="flex-row rounded-xl p-4 items-center mb-4 shadow bg-primary"
             onPress={handleScanPress}
           >
@@ -71,7 +71,7 @@ export default function HomeScreen() {
                 ตรวจสอบว่าปลอดภัยสำหรับคุณหรือไม่
               </Text>
             </View>
-          </Pressable>
+          </Pressable> */}
 
           {/* Search Button */}
           {/* ⭐️ 2. เปลี่ยนจาก <View> เป็น <Pressable> และเพิ่ม onPress */}
