@@ -1,6 +1,6 @@
 import Button from '@/components/Button';
 import Colors from '@/constants/Colors';
-import mockProducts from '@/data/mockProducts';
+import getProducts from '@/data/productService';
 import { findProductByBarcode } from '@/utils/productAnalyzer';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
@@ -20,28 +20,36 @@ export default function ScannerScreen() {
     }
   }, [permission, requestPermission]);
 
-  const handleBarCodeScanned = ({ data }: BarcodeScanningResult) => {
-    if (scanned) return;
-    
-    setScanned(true);
-    
-    const product = findProductByBarcode(data, mockProducts);
-    
-    if (product) {
-      router.push(`/product/${product.id}`);
-    } else {
-      Alert.alert(
-        'Product Not Found',
-        'We couldn\'t find this product in our database. Please try scanning another product.',
-        [
-          {
-            text: 'OK',
-            onPress: () => setScanned(false),
-          },
-        ]
-      );
+  const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
+      if (scanned) return;
+      
+      setScanned(true);
+      
+      try {
+        const products = await getProducts();
+        const product = findProductByBarcode(data, products);
+        
+        if (product) {
+          router.push(`/product/${product.id}`);
+        } else {
+          Alert.alert(
+            'Product Not Found',
+            'We couldn\'t find this product in our database. Please try scanning another product.',
+            [
+              {
+                text: 'OK',
+                onPress: () => setScanned(false),
+              },
+            ]
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load products', error);
+        Alert.alert(
+          'Error',
+          'Unable to load product data. Please try again later.',)
+      };
     }
-  };
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));

@@ -4,14 +4,22 @@ import { useRouter } from "expo-router";
 import { Scan, Search, AlertCircle } from "lucide-react-native";
 import Button from "@/components/Button";
 import { useUserProfile } from "@/context/UserProfileContext";
-import mockProducts from "@/data/mockProducts";
+import getProducts from '@/data/productService';
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
+import { Product } from '@/types';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { profile, isFirstLaunch } = useUserProfile();
-  const [recentlyScanned] = useState(mockProducts.slice(0, 3));
+  const [recentlyScanned, setRecentlyScanned] = useState<Product[]>([]);
+
+  React.useEffect(() => {
+    (async () => {
+      const products = await getProducts();
+      setRecentlyScanned(products.slice(0, 3));
+    })();
+  }, []);
 
   const handleScanPress = () => router.push("/scanner");
   const handleSetupProfile = () => router.push("/allergen-profile");

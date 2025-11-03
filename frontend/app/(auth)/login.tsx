@@ -23,14 +23,14 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (res.ok) {
-        await saveToken(data.accessToken); // await เพื่อให้แน่ใจว่า token ถูก set ก่อน AuthContext ทำงาน
+        await saveToken(data.refreshToken); // await เพื่อให้แน่ใจว่า token ถูก set ก่อน AuthContext ทำงาน
         router.replace("/(tabs)");
       } else {
         setErrors({ general: data.message || "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
