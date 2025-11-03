@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { Search, X, ChevronLeft } from "lucide-react-native";
 import ProductCard from "@/components/ProductCard"; // 1. ⭐️ Import Card ที่มีอยู่
 import EmptyState from "@/components/EmptyState"; // 2. ⭐️ Import EmptyState ที่มีอยู่
-// import mockProducts from "@/data/mockProducts"; // 3. ⭐️ ใช้ข้อมูลจำลองชุดเดียวกับหน้า Home
+import mockProducts from "@/data/mockProducts"; // 3. ⭐️ ใช้ข้อมูลจำลองชุดเดียวกับหน้า Home
 import { Product } from "@/types";
 
 // 4. ⭐️ สร้าง Interface สำหรับ TypeScript (ควรตรงกับ ProductCard)
@@ -39,7 +39,6 @@ export default function SearchScreen() {
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]); // คำนวณใหม่เมื่อ searchQuery เปลี่ยน
-
 
   return (
     <SafeAreaView className="flex-1 bg-background">
