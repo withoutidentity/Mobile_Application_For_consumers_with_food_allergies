@@ -2,20 +2,51 @@ import Button from '@/components/Button';
 import SafetyBadge from '@/components/SafetyBadge';
 import Colors from '@/constants/Colors';
 import { useUserProfile } from '@/context/UserProfileContext';
-import allergens from '@/data/allergens';
-import mockProducts from '@/data/mockProducts';
+import getProducts from '@/data/productService';
+import { Product } from '@/types';
 import { analyzeProduct } from '@/utils/productAnalyzer';
 import { useLocalSearchParams } from 'expo-router';
 import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import allergens from '@/data/allergens';
 
 export default function ProductDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // useLocalSearchParams จะคืนค่าเป็น string เสมอ
+  const { id: idFromParams } = useLocalSearchParams<{ id: string }>();
   const { profile } = useUserProfile();
   
-  const product = mockProducts.find(p => p.id === id);
-  
+  // กำหนด Type ให้ชัดเจน
+  const [product, setProduct] = React.useState<Product | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const products = await getProducts();
+        // แปลง id จาก URL (string) ให้เป็น number ก่อนเปรียบเทียบ
+        const numericId = parseInt(idFromParams, 10);
+        // เปรียบเทียบ number กับ number (p.id เป็น number จาก service)
+        const foundProduct = products.find((p) => p.id === numericId);
+        setProduct(foundProduct ?? null);
+      } catch (error) {
+        console.error("Failed to fetch product:", error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [idFromParams]);
+
+  if (loading) {
+    return (
+      <View style={styles.notFound}>
+        <Text style={styles.notFoundTitle}>Loading...</Text>
+      </View>
+    );
+  }
+
   if (!product) {
     return (
       <View style={styles.notFound}>
@@ -25,7 +56,7 @@ export default function ProductDetailScreen() {
       </View>
     );
   }
-  
+
   const analysis = analyzeProduct(product, profile);
   
   const getMatchedAllergenNames = () => {
@@ -101,7 +132,7 @@ export default function ProductDetailScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Ingredients</Text>
         <View style={styles.ingredientsList}>
-          {product.ingredients.map((ingredient, index) => (
+          {product.ingredients.map((ingredient: string, index: number) => (
             <Text key={index} style={styles.ingredient}>• {ingredient}</Text>
           ))}
         </View>
@@ -111,7 +142,7 @@ export default function ProductDetailScreen() {
         <Text style={styles.sectionTitle}>Allergen Warnings</Text>
         <View style={styles.allergenWarnings}>
           {product.allergenWarnings.length > 0 ? (
-            product.allergenWarnings.map((warning, index) => {
+            product.allergenWarnings.map((warning: string, index: number) => {
               const allergen = allergens.find(a => a.id === warning);
               const isUserAllergen = profile.allergens.includes(warning);
               

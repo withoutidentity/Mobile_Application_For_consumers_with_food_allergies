@@ -28,7 +28,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/auth/register", {
+      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),

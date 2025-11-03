@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import http from 'http';
 import authRoutes from './routes/auth.route';
 import cors from 'cors';
+import { errorHandler } from "./middlewares/errorHandler";
+import productRoutes from "./routes/product.routes";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
 
@@ -19,6 +21,11 @@ app.get("/", (req, res) => {
 });
 
 app.use('/auth', authRoutes);
+// product routes
+app.use("/api/products", productRoutes);
+
+// ดักจับข้อผิดพลาดทั่วไป
+app.use(errorHandler);
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
