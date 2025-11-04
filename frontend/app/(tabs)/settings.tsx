@@ -15,22 +15,22 @@ export default function SettingsScreen() {
 
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
-    Alert.alert('Coming Soon', 'Dark mode will be available in a future update.');
+    Alert.alert('เร็วๆ นี้', 'โหมดกลางคืนจะพร้อมใช้งานในอัปเดตถัดไป');
   };
 
   const handleNotificationsToggle = () => {
     setNotifications(!notifications);
-    Alert.alert('Coming Soon', 'Notification settings will be available in a future update.');
+    Alert.alert('เร็วๆ นี้', 'การตั้งค่าการแจ้งเตือนจะพร้อมใช้งานในอัปเดตถัดไป');
   };
 
   const handleClearProfile = () => {
     Alert.alert(
-      'Clear Profile',
-      'Are you sure you want to clear your allergen profile? This will remove all your saved allergens.',
+      'ลบโปรไฟล์',
+      'คุณแน่ใจหรือไม่ว่าต้องการลบโปรไฟล์สารก่อภูมิแพ้? ข้อมูลสารก่อภูมิแพ้ที่บันทึกไว้ทั้งหมดของคุณจะถูกลบ',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'ยกเลิก', style: 'cancel' },
         {
-          text: 'Clear',
+          text: 'ลบ',
           style: 'destructive',
           onPress: () => {
             saveProfile({
@@ -53,29 +53,29 @@ export default function SettingsScreen() {
     <ScrollView className="flex-1 bg-[#F8F9FA]" contentContainerStyle={{ padding: 16 }}>
       {/* Header */}
       <View className="mb-6">
-        <Text className="text-2xl font-bold text-[#666666] mb-2">Settings</Text>
-        <Text className="text-base text-[#666666]">Customize your experience</Text>
+        <Text className="text-2xl font-bold text-[#666666] mb-2">การตั้งค่า</Text>
+        <Text className="text-base text-[#666666]">ปรับแต่งประสบการณ์ของคุณ</Text>
       </View>
 
-      {/* Profile Settings - moved to top */}
+      {/* Profile Settings */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">Profile</Text>
+        <Text className="text-lg font-semibold text-[#333333] mb-4">โปรไฟล์</Text>
         <Pressable
           className="flex-row items-center py-3"
           onPress={() => router.push("/allergen-profile")}
         >
           <User size={20} color="#333333" className="mr-3" />
-          <Text className="text-base text-[#333333]">Allergen Profile</Text>
+          <Text className="text-base text-[#333333]">โปรไฟล์สารก่อภูมิแพ้</Text>
         </Pressable>
       </View>
 
       {/* Appearance */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">Appearance</Text>
+        <Text className="text-lg font-semibold text-[#333333] mb-4">ลักษณะที่ปรากฏ</Text>
         <View className="flex-row justify-between items-center border-b border-[#E5E5E5] py-3">
           <View className="flex-row items-center flex-1">
             <Moon size={20} color="#333333" className="mr-3" />
-            <Text className="text-base text-[#333333]">Dark Mode</Text>
+            <Text className="text-base text-[#333333]">โหมดกลางคืน</Text>
           </View>
           <Switch
             value={darkMode}
@@ -88,11 +88,11 @@ export default function SettingsScreen() {
 
       {/* Notifications */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">Notifications</Text>
+        <Text className="text-lg font-semibold text-[#333333] mb-4">การแจ้งเตือน</Text>
         <View className="flex-row justify-between items-center border-b border-[#E5E5E5] py-3">
           <View className="flex-row items-center flex-1">
             <Bell size={20} color="#333333" className="mr-3" />
-            <Text className="text-base text-[#333333]">Enable Notifications</Text>
+            <Text className="text-base text-[#333333]">เปิดใช้งานการแจ้งเตือน</Text>
           </View>
           <Switch
             value={notifications}
@@ -105,13 +105,12 @@ export default function SettingsScreen() {
 
       {/* Emergency Contact */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">Emergency Contact</Text>
+        <Text className="text-lg font-semibold text-[#333333] mb-4">ติดต่อฉุกเฉิน</Text>
         <Pressable className="flex-row items-center">
           <User size={20} color="#333333" className="mr-3" />
           <View>
-            <Text className="text-base text-[#333333]">Emergency Contact</Text>
             <Text className="text-sm text-[#666666] mt-1">
-              {profile.emergencyContact || 'Not set'}
+              {profile.emergencyContact || 'กรุณาโทร 1669'}
             </Text>
           </View>
         </Pressable>
@@ -119,17 +118,17 @@ export default function SettingsScreen() {
 
       {/* Support */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">Support</Text>
+        <Text className="text-lg font-semibold text-[#333333] mb-4">ความช่วยเหลือ</Text>
         <Pressable className="flex-row items-center">
           <HelpCircle size={20} color="#333333" className="mr-3" />
-          <Text className="text-base text-[#333333]">Help & FAQ</Text>
+          <Text className="text-base text-[#333333]">ความช่วยเหลือ & คำถามที่พบบ่อย</Text>
         </Pressable>
       </View>
 
       {/* Data */}
       <View className="mb-6">
         <Button
-          title="Clear Allergen Profile"
+          title="ลบโปรไฟล์สารก่อภูมิแพ้"
           onPress={handleClearProfile}
           variant="danger"
           icon={<Trash2 size={16} color="#fff" />}
@@ -139,7 +138,7 @@ export default function SettingsScreen() {
       {/* Logout */}
       <View className="mb-6">
         <Button
-          title="Logout"
+          title="ออกจากระบบ"
           onPress={handleLogout}
           variant="primary"
         />
@@ -147,7 +146,7 @@ export default function SettingsScreen() {
 
       {/* Footer */}
       <View className="items-center mt-6 mb-4">
-        <Text className="text-sm text-[#666666]">Version 1.0.0</Text>
+        <Text className="text-sm text-[#666666]">เวอร์ชัน 1.0.0</Text>
       </View>
     </ScrollView>
   );
