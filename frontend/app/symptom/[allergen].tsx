@@ -51,10 +51,14 @@ export default function SymptomDetailScreen() {
 
   if (!allergenInfo || !symptomInfo) {
     return (
-      <View style={styles.notFound}>
+      <View className="flex-1 justify-center items-center p-6">
         <AlertCircle size={64} color={Colors.unsafe} />
-        <Text style={styles.notFoundTitle}>Information Not Found</Text>
-        <Text style={styles.notFoundText}>We couldn't find symptom information for this allergen.</Text>
+        <Text className="text-xl font-bold text-text mt-4 mb-2">
+          Information Not Found
+        </Text>
+        <Text className="text-base text-textLight text-center">
+          We couldn't find symptom information for this allergen.
+        </Text>
       </View>
     );
   }
@@ -82,216 +86,113 @@ export default function SymptomDetailScreen() {
           </Text>
         </View>
       </View>
-      
-      <View style={styles.description}>
-        <Text style={styles.descriptionText}>{allergenInfo.description}</Text>
+
+      {/* 5. แปลง Description */}
+      <View className="mb-6">
+        <Text className="text-base text-text leading-6">
+          {allergenInfo.description}
+        </Text>
       </View>
-      
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
+
+      {/* 6. แปลง Section (Common Symptoms) */}
+      <View className="mb-6">
+        <View className="flex-row items-center mb-3">
           <AlertCircle size={20} color={Colors.unsafe} />
-          <Text style={styles.sectionTitle}>Common Symptoms</Text>
-        </View>
-        <View style={styles.list}>
-          {symptomInfo.symptoms.map((symptom, index) => (
-            <View key={index} style={styles.listItem}>
-              <Text style={styles.listItemText}>{symptom}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-      
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Heart size={20} color={Colors.primary} />
-          <Text style={styles.sectionTitle}>First Aid</Text>
-        </View>
-        <View style={styles.list}>
-          {symptomInfo.firstAid.map((item, index) => (
-            <View key={index} style={styles.listItem}>
-              <Text style={styles.listItemText}>{item}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-      
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <AlertTriangle size={20} color={Colors.caution} />
-          <Text style={styles.sectionTitle}>When to Seek Medical Help</Text>
-        </View>
-        <View style={styles.emergencyCard}>
-          <Text style={styles.emergencyText}>
-            If you experience any of the following symptoms, seek immediate medical attention:
+          <Text className="text-lg font-semibold text-text ml-2">
+            Common Symptoms
           </Text>
-          <View style={styles.list}>
+        </View>
+        <View className="bg-card rounded-lg p-3">
+          {symptomInfo.symptoms.map((symptom, index) => (
+            <View
+              key={index}
+              // ใช้ 'last:' modifier เพื่อลบเส้นขอบตัวสุดท้าย
+              className="py-2 border-b border-border last:border-b-0"
+            >
+              <Text className="text-base text-text leading-6">{symptom}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 7. แปลง Section (First Aid) */}
+      <View className="mb-6">
+        <View className="flex-row items-center mb-3">
+          <Heart size={20} color={Colors.primary} />
+          <Text className="text-lg font-semibold text-text ml-2">
+            First Aid
+          </Text>
+        </View>
+        <View className="bg-card rounded-lg p-3">
+          {symptomInfo.firstAid.map((item, index) => (
+            <View
+              key={index}
+              className="py-2 border-b border-border last:border-b-0"
+            >
+              <Text className="text-base text-text leading-6">{item}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 8. แปลง Section (When to Seek Medical Help) */}
+      <View className="mb-6">
+        <View className="flex-row items-center mb-3">
+          <AlertTriangle size={20} color={Colors.caution} />
+          <Text className="text-lg font-semibold text-text ml-2">
+            When to Seek Medical Help
+          </Text>
+        </View>
+        {/* ใช้ NativeWind opacity shorthand (bg-unsafe/10) */}
+        <View className="bg-unsafe/10 rounded-lg p-4 border-l-4 border-l-unsafe">
+          <Text className="text-base text-text mb-3 font-medium">
+            If you experience any of the following symptoms, seek immediate
+            medical attention:
+          </Text>
+          <View>
             {symptomInfo.whenToSeekHelp.map((item, index) => (
-              <View key={index} style={styles.emergencyItem}>
-                <Text style={styles.emergencyItemText}>{item}</Text>
+              <View
+                key={index}
+                // ใช้ NativeWind opacity shorthand (border-unsafe/20)
+                className="py-2 border-b border-unsafe/20 last:border-b-0"
+              >
+                <Text className="text-base text-text font-medium">{item}</Text>
               </View>
             ))}
           </View>
         </View>
       </View>
-      
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
+
+      {/* 9. แปลง Section (Also Known As) */}
+      <View className="mb-6">
+        <View className="flex-row items-center mb-3">
           <Clock size={20} color={Colors.secondary} />
-          <Text style={styles.sectionTitle}>Also Known As</Text>
+          <Text className="text-lg font-semibold text-text ml-2">
+            Also Known As
+          </Text>
         </View>
-        <View style={styles.aliasList}>
+        <View className="flex-row flex-wrap">
           {allergenInfo.altNames.map((alias, index) => (
-            <View key={index} style={styles.aliasItem}>
-              <Text style={styles.aliasText}>{alias}</Text>
+            <View
+              key={index}
+              className="bg-card rounded-2xl py-1.5 px-3 mr-2 mb-2"
+            >
+              <Text className="text-sm text-text">{alias}</Text>
             </View>
           ))}
         </View>
       </View>
-      
-      <View style={styles.disclaimer}>
-        <Text style={styles.disclaimerText}>
-          Disclaimer: This information is provided for educational purposes only and is not intended to be a substitute for professional medical advice, diagnosis, or treatment.
+
+      {/* 10. แปลง Disclaimer */}
+      <View className="mt-4 p-4 bg-secondary/10 rounded-lg">
+        <Text className="text-sm text-textLight italic leading-5">
+          Disclaimer: This information is provided for educational purposes only
+          and is not intended to be a substitute for professional medical advice,
+          diagnosis, or treatment.
         </Text>
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  contentContainer: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  notFound: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  notFoundTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  notFoundText: {
-    fontSize: 16,
-    color: Colors.textLight,
-    textAlign: 'center',
-  },
-  header: {
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    flex: 1,
-  },
-  severityBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  severityText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  description: {
-    marginBottom: 24,
-  },
-  descriptionText: {
-    fontSize: 16,
-    color: Colors.text,
-    lineHeight: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text,
-    marginLeft: 8,
-  },
-  list: {
-    backgroundColor: Colors.card,
-    borderRadius: 8,
-    padding: 12,
-  },
-  listItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  listItemText: {
-    fontSize: 16,
-    color: Colors.text,
-    lineHeight: 24,
-  },
-  emergencyCard: {
-    backgroundColor: 'rgba(231, 111, 81, 0.1)',
-    borderRadius: 8,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.unsafe,
-  },
-  emergencyText: {
-    fontSize: 16,
-    color: Colors.text,
-    marginBottom: 12,
-    fontWeight: '500',
-  },
-  emergencyItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(231, 111, 81, 0.2)',
-  },
-  emergencyItemText: {
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: '500',
-  },
-  aliasList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  aliasItem: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  aliasText: {
-    fontSize: 14,
-    color: Colors.text,
-  },
-  disclaimer: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: 'rgba(38, 70, 83, 0.1)',
-    borderRadius: 8,
-  },
-  disclaimerText: {
-    fontSize: 14,
-    color: Colors.textLight,
-    fontStyle: 'italic',
-    lineHeight: 20,
-  },
-});
+// ⛔️ ลบ const styles = StyleSheet.create({...}) ทั้งหมด
