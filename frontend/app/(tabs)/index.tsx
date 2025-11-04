@@ -5,19 +5,25 @@ import { Scan, Search, AlertCircle } from "lucide-react-native";
 import Button from "@/components/Button";
 import { useUserProfile } from "@/context/UserProfileContext";
 import getProducts from '@/data/productService';
+import { fetchAllergens } from '@/data/allergens';
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
-import { Product } from '@/types';
+import { Allergen, Product } from '@/types';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { profile, isFirstLaunch } = useUserProfile();
   const [recentlyScanned, setRecentlyScanned] = useState<Product[]>([]);
+  const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
 
   React.useEffect(() => {
     (async () => {
+      // Fetch both products and allergens
       const products = await getProducts();
+      const allergens = await fetchAllergens();
+
       setRecentlyScanned(products.slice(0, 3));
+      setAllAllergens(allergens);
     })();
   }, []);
 
@@ -107,7 +113,11 @@ export default function HomeScreen() {
             </Text>
             {recentlyScanned.length > 0 ? (
               recentlyScanned.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  allAllergens={allAllergens}
+                />
               ))
             ) : (
               <EmptyState

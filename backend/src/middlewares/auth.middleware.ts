@@ -4,24 +4,37 @@ import { PrismaClient } from '../generated/prisma';
 
 const prisma = new PrismaClient();
 
-const accessSecret = process.env.ACCESS_TOKEN_SECRET!
+// สร้าง interface สำหรับ req.user เพื่อให้ TypeScript รู้จัก
+export interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    // สามารถเพิ่ม properties อื่นๆ ของ user ที่ต้องการได้
+  };
+}
 
-export function authenticateToken (req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
+export const authenticateToken = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
-    res.sendStatus(401)
-    return
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 
-  jwt.verify(token, accessSecret, (err, user) => {
-    if (err) {
-      res.sendStatus(403)
-      return
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as { id: number };
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized, user not found' });
     }
-    // @ts-ignore
-    req.user = user
-    next()
-  })
-}
+    req.user = user; // กำหนด user object ทั้งหมดให้กับ request
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized, token failed' });
+  }
+};

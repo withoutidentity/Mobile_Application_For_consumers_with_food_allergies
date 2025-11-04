@@ -3,11 +3,12 @@ import SafetyBadge from '@/components/SafetyBadge';
 import Colors from '@/constants/Colors';
 import { useUserProfile } from '@/context/UserProfileContext';
 import getProducts from '@/data/productService';
-import { Product } from '@/types';
+import { Allergen, Product } from '@/types';
 import { analyzeProduct } from '@/utils/productAnalyzer';
 import { useLocalSearchParams } from 'expo-router';
 import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { fetchAllergens } from '@/data/allergens';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import allergens from '@/data/allergens';
 
@@ -17,18 +18,24 @@ export default function ProductDetailScreen() {
   const { profile } = useUserProfile();
   
   // กำหนด Type ให้ชัดเจน
-  const [product, setProduct] = React.useState<Product | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    const fetchProduct = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const products = await getProducts();
+        const [products, fetchedAllergens] = await Promise.all([
+          getProducts(),
+          fetchAllergens(), // ดึงข้อมูล allergens ทั้งหมด
+        ]);
+
         // แปลง id จาก URL (string) ให้เป็น number ก่อนเปรียบเทียบ
         const numericId = parseInt(idFromParams, 10);
         // เปรียบเทียบ number กับ number (p.id เป็น number จาก service)
         const foundProduct = products.find((p) => p.id === numericId);
         setProduct(foundProduct ?? null);
+        setAllAllergens(fetchedAllergens);
       } catch (error) {
         console.error("Failed to fetch product:", error);
         setProduct(null);
@@ -36,7 +43,7 @@ export default function ProductDetailScreen() {
         setLoading(false);
       }
     };
-    fetchProduct();
+    fetchData();
   }, [idFromParams]);
 
   if (loading) {
@@ -57,12 +64,12 @@ export default function ProductDetailScreen() {
     );
   }
 
-  const analysis = analyzeProduct(product, profile);
+  const analysis = analyzeProduct(product, profile, allAllergens);
   
   const getMatchedAllergenNames = () => {
-    return analysis.directMatches.map(id => {
-      const allergen = allergens.find(a => a.id === id);
-      return allergen ? allergen.name : id;
+    // analysis.directMatches is an array of Allergen objects
+    return analysis.directMatches.map(allergen => {
+      return allergen.name;
     });
   };
 
@@ -142,9 +149,10 @@ export default function ProductDetailScreen() {
         <Text style={styles.sectionTitle}>Allergen Warnings</Text>
         <View style={styles.allergenWarnings}>
           {product.allergenWarnings.length > 0 ? (
-            product.allergenWarnings.map((warning: string, index: number) => {
-              const allergen = allergens.find(a => a.id === warning);
-              const isUserAllergen = profile.allergens.includes(warning);
+            product.allergenWarnings.map((warningName: string, index: number) => {
+              // Find the allergen details from the full list by name
+              const allergen = allAllergens.find(a => a.name.toLowerCase() === warningName.toLowerCase());
+              const isUserAllergen = allergen ? profile.allergens.includes(allergen.id) : false;
               
               return (
                 <View 
@@ -165,7 +173,7 @@ export default function ProductDetailScreen() {
                       isUserAllergen && styles.userAllergenWarningText
                     ]}
                   >
-                    {allergen ? allergen.name : warning}
+                    {allergen ? allergen.name : warningName}
                   </Text>
                 </View>
               );

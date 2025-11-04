@@ -7,17 +7,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 interface AllergenCardProps {
   allergen: Allergen;
   selected: boolean;
-  onToggle: (id: string) => void;
+  onToggle: (id: number) => void;
 }
 
 export default function AllergenCard({ allergen, selected, onToggle }: AllergenCardProps) {
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'สูง':
+  const getSeverityColor = (defaultLevel: string) => {
+    switch (defaultLevel) {
+      case 'HIGH':
         return Colors.unsafe;
-      case 'medium':
+      case 'MEDIUM':
         return Colors.caution;
-      case 'low':
+      case 'LOW':
         return Colors.safe;
       default:
         return Colors.primary;
@@ -34,19 +34,19 @@ export default function AllergenCard({ allergen, selected, onToggle }: AllergenC
     >
       <View style={styles.header}>
         <Text style={styles.name}>{allergen.name}</Text>
-        <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergen.severity) }]}>
+        <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergen.defaultLevel) }]}>
           <Text style={styles.severityText}>
-            {allergen.severity.charAt(0).toUpperCase() + allergen.severity.slice(1)}
+            {allergen.defaultLevel.charAt(0).toUpperCase() + allergen.defaultLevel.slice(1)}
           </Text>
         </View>
       </View>
       
       <Text style={styles.description}>{allergen.description}</Text>
       
-      {allergen.aliases.length > 0 && (
+      {allergen.altNames.length > 0 && (
         <View style={styles.aliasesContainer}>
           <Text style={styles.aliasesTitle}>Also known as:</Text>
-          <Text style={styles.aliases}>{allergen.aliases.join(', ')}</Text>
+          <Text style={styles.aliases}>{allergen.altNames.join(', ')}</Text>
         </View>
       )}
       

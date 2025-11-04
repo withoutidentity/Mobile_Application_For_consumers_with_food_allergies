@@ -1,10 +1,10 @@
 import AllergenCard from "@/components/AllergenCard";
 import Button from "@/components/Button";
 import EmptyState from "@/components/EmptyState";
-import { useUserProfile } from "@/context/UserProfileContext";
-import allergens from "@/data/allergens";
+import { useUserProfile } from "@/context/UserProfileContext"; 
+import { fetchAllergens } from "@/data/allergens";
 import { AlertCircle, ArrowLeft, Search, User } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -14,22 +14,32 @@ import {
   StyleSheet, // 1. Import StyleSheet
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Allergen } from "@/types";
 
 export default function AllergenProfileScreen() {
   const router = useRouter();
   const { profile, addAllergen, removeAllergen } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
 
-  const filteredAllergens = allergens.filter(
+  useEffect(() => {
+    const loadAllergens = async () => {
+      const data = await fetchAllergens();
+      setAllAllergens(data);
+    };
+    loadAllergens();
+  }, []);
+
+  const filteredAllergens = allAllergens.filter(
     (allergen) =>
       allergen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      allergen.aliases.some((alias) =>
+      allergen.altNames.some((alias) =>
         alias.toLowerCase().includes(searchQuery.toLowerCase())
       )
   );
 
-  const handleToggleAllergen = (allergenId: string) => {
+  const handleToggleAllergen = (allergenId: number) => {
     if (profile.allergens.includes(allergenId)) {
       removeAllergen(allergenId);
     } else {

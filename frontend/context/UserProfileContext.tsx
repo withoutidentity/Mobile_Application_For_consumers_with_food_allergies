@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useEffect, useState } from 'react';
-import { UserProfile } from '@/types';
+import { Allergen, UserProfile } from '@/types';
+import { useAuth } from './AuthContext';
+import { getMyProfile, updateUserAllergens } from "@/data/userService";
 
 const STORAGE_KEY = 'user_profile';
-
+ 
 export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   const [profile, setProfile] = useState<UserProfile>({
     allergens: [],
@@ -12,23 +14,27 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);
+  const { token, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    loadProfile();
-  }, []);
+    // Load profile only when auth is done and token is available
+    if (!authLoading && token) {
+      loadProfileFromAPI();
+    } else if (!authLoading && !token) {
+      // If user is logged out, clear profile and stop loading
+      setProfile({ allergens: [], dietaryRestrictions: [] });
+      setIsLoading(false);
+    }
+  }, [token, authLoading]);
 
-  const loadProfile = async () => {
+  const loadProfileFromAPI = async () => {
     try {
       setIsLoading(true);
-      const storedProfile = await AsyncStorage.getItem(STORAGE_KEY);
-      
-      if (storedProfile) {
-        setProfile(JSON.parse(storedProfile));
-      } else {
-        setIsFirstLaunch(true);
-      }
+      const apiProfile = await getMyProfile();
+      setProfile(apiProfile);
     } catch (error) {
-      console.error('Failed to load profile:', error);
+      console.error('Failed to load profile from API:', error);
+      // Optionally, handle first launch or fallback to local storage
     } finally {
       setIsLoading(false);
     }
@@ -36,25 +42,26 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
 
   const saveProfile = async (updatedProfile: UserProfile) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProfile));
-      setProfile(updatedProfile);
-      setIsFirstLaunch(false);
+      // Now this function updates the backend
+      await updateUserAllergens(updatedProfile.allergens); 
+      // Refetch the profile from the API to ensure UI is in sync with the database
+      await loadProfileFromAPI();
     } catch (error) {
-      console.error('Failed to save profile:', error);
+      console.error('Failed to save profile to API:', error);
     }
   };
 
-  const addAllergen = async (allergenId: string) => {
+  const addAllergen = async (allergenId: number) => {
     if (!profile.allergens.includes(allergenId)) {
       const updatedProfile = {
         ...profile,
         allergens: [...profile.allergens, allergenId],
       };
-      await saveProfile(updatedProfile);
+      await saveProfile(updatedProfile); // This will call the API
     }
   };
 
-  const removeAllergen = async (allergenId: string) => {
+  const removeAllergen = async (allergenId: number) => {
     const updatedProfile = {
       ...profile,
       allergens: profile.allergens.filter(id => id !== allergenId),

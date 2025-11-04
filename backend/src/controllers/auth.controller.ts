@@ -58,8 +58,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const accessToken = jwt.sign({ id: user.id }, accessSecret, { expiresIn: '15m' })
-    const refreshToken = jwt.sign({ id: user.id }, refreshSecret, { expiresIn: '7d' })
+    const accessToken = jwt.sign({ id: user.id }, accessSecret, { expiresIn: '7d' })
+    const refreshToken = jwt.sign({ id: user.id }, refreshSecret, { expiresIn: '14d' })
 
     await prisma.user.update({
       where: { id: user.id },

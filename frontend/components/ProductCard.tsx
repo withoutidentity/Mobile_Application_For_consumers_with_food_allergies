@@ -1,6 +1,6 @@
 import Colors from '@/constants/Colors';
 import { useUserProfile } from '@/context/UserProfileContext';
-import { Product } from '@/types';
+import { Allergen, Product } from '@/types';
 import { analyzeProduct } from '@/utils/productAnalyzer';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -9,13 +9,15 @@ import SafetyBadge from './SafetyBadge';
 
 interface ProductCardProps {
   product: Product;
+  allAllergens: Allergen[];
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, allAllergens }: ProductCardProps) {
   const router = useRouter();
   const { profile } = useUserProfile();
-  
-  const analysis = analyzeProduct(product, profile);
+
+  // Pass allAllergens as the third argument
+  const analysis = analyzeProduct(product, profile, allAllergens);
   
   const handlePress = () => {
     router.push(`/product/${product.id}`);

@@ -5,6 +5,8 @@ import authRoutes from './routes/auth.route';
 import cors from 'cors';
 import { errorHandler } from "./middlewares/errorHandler";
 import productRoutes from "./routes/product.routes";
+import allergenRoutes from './routes/allergen.routes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
 
@@ -23,6 +25,10 @@ app.get("/", (req, res) => {
 app.use('/auth', authRoutes);
 // product routes
 app.use("/api/products", productRoutes);
+// allergen routes
+app.use("/api/allergens", allergenRoutes);
+// user routes
+app.use("/api/users", userRoutes);
 
 // ดักจับข้อผิดพลาดทั่วไป
 app.use(errorHandler);
@@ -30,4 +36,3 @@ app.use(errorHandler);
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-

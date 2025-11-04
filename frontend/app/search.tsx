@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -9,25 +9,37 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Search, X, ChevronLeft } from "lucide-react-native";
-import ProductCard from "@/components/ProductCard"; // 1. ⭐️ Import Card ที่มีอยู่
-import EmptyState from "@/components/EmptyState"; // 2. ⭐️ Import EmptyState ที่มีอยู่
-// import mockProducts from "@/data/mockProducts"; // 3. ⭐️ ใช้ข้อมูลจำลองชุดเดียวกับหน้า Home
-import { Product } from "@/types";
-
-// 4. ⭐️ สร้าง Interface สำหรับ TypeScript (ควรตรงกับ ProductCard)
-// (คุณอาจจะต้องปรับแก้ให้ตรงกับ Interface จริงของ Product)
-// interface Product {
-//   id: string;
-//   name: string;
-//   brand: string;
-//   image: string;
-//   safety: "safe" | "unsafe" | "caution";
-//   allergens?: string[];
-// }
+import ProductCard from "@/components/ProductCard";
+import EmptyState from "@/components/EmptyState";
+import getProducts from "@/data/productService";
+import { fetchAllergens } from "@/data/allergens";
+import { Allergen, Product } from "@/types";
 
 export default function SearchScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [products, allergens] = await Promise.all([
+          getProducts(),
+          fetchAllergens(),
+        ]);
+        setAllProducts(products);
+        setAllAllergens(allergens);
+      } catch (error) {
+        console.error("Failed to load data for search screen:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // 5. ⭐️ ใช้ useMemo เพื่อคำนวณผลลัพธ์
   const results = useMemo(() => {
@@ -35,11 +47,10 @@ export default function SearchScreen() {
       return []; // ไม่มี query ก็ไม่ต้องแสดงผล
     }
     // กรองข้อมูล (ในแอปจริง ส่วนนี้ควรจะ query API)
-    return mockProducts.filter((item) =>
+    return allProducts.filter((item) =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]); // คำนวณใหม่เมื่อ searchQuery เปลี่ยน
-
+  }, [searchQuery, allProducts]); // คำนวณใหม่เมื่อ searchQuery หรือ allProducts เปลี่ยน
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -74,10 +85,10 @@ export default function SearchScreen() {
         {/* 2. ส่วนแสดงผลลัพธ์การค้นหา */}
         <FlatList
           data={results}
-          keyExtractor={(item: Product) => item.id} // แก้ 'any' type
+          keyExtractor={(item: Product) => item.id.toString()}
           renderItem={({ item }) => (
             <View className="px-4 py-2">
-              <ProductCard product={item} />
+              <ProductCard product={item} allAllergens={allAllergens} />
             </View>
           )}
           // 6. ⭐️ แสดง EmptyState เมื่อไม่พบผลลัพธ์

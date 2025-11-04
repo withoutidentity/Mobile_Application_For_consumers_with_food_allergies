@@ -1,17 +1,54 @@
 import Colors from '@/constants/Colors';
-import allergens from '@/data/allergens';
-import allergenSymptoms from '@/data/symptoms';
+import { fetchAllergens } from '@/data/allergens';
+import { fetchSymptoms } from '@/data/symptoms';
+import { Allergen, AllergenSymptom } from '@/types';
 import { useLocalSearchParams } from 'expo-router';
 import { AlertCircle, AlertTriangle, Clock, Heart } from 'lucide-react-native';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function SymptomDetailScreen() {
   const { allergen } = useLocalSearchParams<{ allergen: string }>();
   
-  const allergenInfo = allergens.find(a => a.id === allergen);
-  const symptomInfo = allergenSymptoms.find(s => s.allergenId === allergen);
+  const [allergenInfo, setAllergenInfo] = useState<Allergen | null>(null);
+  const [symptomInfo, setSymptomInfo] = useState<AllergenSymptom | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!allergen) return;
+
+      setLoading(true);
+      try {
+        const allergenId = parseInt(allergen, 10);
+        const [allAllergens, allSymptoms] = await Promise.all([
+          fetchAllergens(),
+          fetchSymptoms(),
+        ]);
+
+        const foundAllergen = allAllergens.find(a => a.id === allergenId) ?? null;
+        const foundSymptom = allSymptoms.find(s => s.allergenId === allergenId) ?? null;
+
+        setAllergenInfo(foundAllergen);
+        setSymptomInfo(foundSymptom);
+      } catch (error) {
+        console.error("Failed to load symptom details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [allergen]);
   
+  if (loading) {
+    return (
+      <View style={styles.notFound}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.notFoundTitle}>Loading Details...</Text>
+      </View>
+    );
+  }
+
   if (!allergenInfo || !symptomInfo) {
     return (
       <View style={styles.notFound}>
@@ -22,13 +59,13 @@ export default function SymptomDetailScreen() {
     );
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
+  const getSeverityColor = (defaultLevel: string) => {
+    switch (defaultLevel) {
+      case 'HIGH':
         return Colors.unsafe;
-      case 'medium':
+      case 'MEDIUM':
         return Colors.caution;
-      case 'low':
+      case 'LOW':
         return Colors.safe;
       default:
         return Colors.primary;
@@ -39,9 +76,9 @@ export default function SymptomDetailScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
         <Text style={styles.title}>{allergenInfo.name} Allergy</Text>
-        <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergenInfo.severity) }]}>
+        <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergenInfo.defaultLevel) }]}>
           <Text style={styles.severityText}>
-            {allergenInfo.severity.charAt(0).toUpperCase() + allergenInfo.severity.slice(1)} Severity
+            {allergenInfo.defaultLevel.charAt(0).toUpperCase() + allergenInfo.defaultLevel.slice(1)} Severity
           </Text>
         </View>
       </View>
@@ -103,7 +140,7 @@ export default function SymptomDetailScreen() {
           <Text style={styles.sectionTitle}>Also Known As</Text>
         </View>
         <View style={styles.aliasList}>
-          {allergenInfo.aliases.map((alias, index) => (
+          {allergenInfo.altNames.map((alias, index) => (
             <View key={index} style={styles.aliasItem}>
               <Text style={styles.aliasText}>{alias}</Text>
             </View>

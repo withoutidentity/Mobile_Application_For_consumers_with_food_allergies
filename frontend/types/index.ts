@@ -1,13 +1,13 @@
 export interface Allergen {
-  id: string;
+  id: number;
   name: string;
+  altNames: string[];
   description: string;
-  aliases: string[];
-  severity: 'low' | 'medium' | 'high';
+  defaultLevel: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
 export interface UserProfile {
-  allergens: string[]; // IDs of allergens
+  allergens: number[]; // IDs of allergens
   dietaryRestrictions: string[];
   name?: string;
   emergencyContact?: string;
@@ -24,7 +24,7 @@ export interface Product {
 }
 
 export interface AllergenSymptom {
-  allergenId: string;
+  allergenId: number;
   allergenName: string;
   symptoms: string[];
   firstAid: string[];

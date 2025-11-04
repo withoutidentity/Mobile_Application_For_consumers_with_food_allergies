@@ -1,30 +1,45 @@
-import allergens from '@/data/allergens';
-import allergenSymptoms from '@/data/symptoms';
+import { fetchAllergens } from '@/data/allergens';
+import { fetchSymptoms } from '@/data/symptoms';
+import { Allergen, AllergenSymptom } from '@/types';
 import { useRouter } from 'expo-router';
 import { AlertCircle, Search } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 export default function GuideScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
+  const [allSymptoms, setAllSymptoms] = useState<AllergenSymptom[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredAllergens = allergens.filter(allergen => 
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const [allergensData, symptomsData] = await Promise.all([fetchAllergens(), fetchSymptoms()]);
+      setAllAllergens(allergensData);
+      setAllSymptoms(symptomsData);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
+  const filteredAllergens = allAllergens.filter(allergen => 
     allergen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    allergen.aliases.some(alias => alias.toLowerCase().includes(searchQuery.toLowerCase()))
+    allergen.altNames.some(alias => alias.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleAllergenPress = (allergenId: string) => {
+  const handleAllergenPress = (allergenId: number) => {
     router.push(`/symptom/${allergenId}`);
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
+  const getSeverityColor = (defaultLevel: string) => {
+    switch (defaultLevel) {
+      case 'HIGH':
         return '#E76F51'; // unsafe
-      case 'medium':
+      case 'MEDIUM':
         return '#E9C46A'; // caution
-      case 'low':
+      case 'LOW':
         return '#2A9D8F'; // safe
       default:
         return '#2A9D8F'; // primary fallback
@@ -56,9 +71,16 @@ export default function GuideScreen() {
         </Text>
       </View>
 
+      {loading && (
+        <View className="flex-1 justify-center items-center p-10">
+          <ActivityIndicator size="large" color="#2A9D8F" />
+          <Text className="mt-4 text-gray-500">Loading allergy information...</Text>
+        </View>
+      )}
+
       <View className="mt-2">
-        {filteredAllergens.map(allergen => {
-          const symptomInfo = allergenSymptoms.find(s => s.allergenId === allergen.id);
+        {!loading && filteredAllergens.map(allergen => {
+          const symptomInfo = allSymptoms.find(s => s.allergenId === allergen.id);
           const symptomCount = symptomInfo ? symptomInfo.symptoms.length : 0;
 
           return (
@@ -76,9 +98,9 @@ export default function GuideScreen() {
             >
               <View className="flex-row justify-between items-center mb-2">
                 <Text className="text-lg font-semibold text-[#333333] flex-1">{allergen.name}</Text>
-                <View className="px-2 py-1 rounded-full" style={{ backgroundColor: getSeverityColor(allergen.severity) }}>
+                <View className="px-2 py-1 rounded-full" style={{ backgroundColor: getSeverityColor(allergen.defaultLevel) }}>
                   <Text className="text-white text-xs font-semibold">
-                    {allergen.severity.charAt(0).toUpperCase() + allergen.severity.slice(1)}
+                    {allergen.defaultLevel.charAt(0).toUpperCase() + allergen.defaultLevel.slice(1)}
                   </Text>
                 </View>
               </View>
@@ -94,7 +116,7 @@ export default function GuideScreen() {
             </Pressable>
           );
         })}
-        {filteredAllergens.length === 0 && (
+        {!loading && filteredAllergens.length === 0 && (
           <View className="p-6 items-center">
             <Text className="text-base text-[#666666] text-center">
               No allergens found matching "{searchQuery}"
