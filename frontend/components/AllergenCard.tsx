@@ -1,16 +1,19 @@
 import Colors from '@/constants/Colors';
-import { Allergen } from '@/types';
+import { Allergen, Severity } from '@/types';
 import { AlertCircle, Check } from 'lucide-react-native';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 
 interface AllergenCardProps {
   allergen: Allergen;
   selected: boolean;
-  onToggle: (id: number) => void;
+  severity?: Severity;
+  onToggle: (id: number, isSelected: boolean) => void;
+  onSeverityChange: (severity: Severity) => void;
 }
 
-export default function AllergenCard({ allergen, selected, onToggle }: AllergenCardProps) {
+export default function AllergenCard({ allergen, selected, severity, onToggle, onSeverityChange }: AllergenCardProps) {
   const getSeverityColor = (defaultLevel: string) => {
     switch (defaultLevel) {
       case 'HIGH':
@@ -30,7 +33,7 @@ export default function AllergenCard({ allergen, selected, onToggle }: AllergenC
         styles.container,
         selected && styles.selectedContainer
       ]}
-      onPress={() => onToggle(allergen.id)}
+      onPress={() => onToggle(allergen.id, selected)}
     >
       <View style={styles.header}>
         <Text style={styles.name}>{allergen.name}</Text>
@@ -64,6 +67,28 @@ export default function AllergenCard({ allergen, selected, onToggle }: AllergenC
           {selected ? 'Added to your profile' : 'Tap to add to your profile'}
         </Text>
       </View>
+
+      {selected && (
+        <View style={styles.severitySelectorContainer}>
+          <Text style={styles.severitySelectorLabel}>My Severity:</Text>
+          <RNPickerSelect
+            onValueChange={(value) => {
+              if (value) {
+                onSeverityChange(value);
+              }
+            }}
+            items={[
+              { label: 'Low', value: 'LOW' },
+              { label: 'Medium', value: 'MEDIUM' },
+              { label: 'High', value: 'HIGH' },
+            ]}
+            value={severity}
+            style={pickerSelectStyles}
+            placeholder={{}}
+            useNativeAndroidPickerStyle={false}
+          />
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -155,5 +180,44 @@ const styles = StyleSheet.create({
   selectedText: {
     color: Colors.primary,
     fontWeight: '500',
+  },
+  severitySelectorContainer: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  severitySelectorLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    backgroundColor: '#F9FAFB',
+  },
+  inputAndroid: {
+    fontSize: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    backgroundColor: '#F9FAFB',
   },
 });

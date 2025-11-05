@@ -3,10 +3,10 @@ import {
   View,
   TextInput,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
 } from "react-native";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { Search, X, ChevronLeft } from "lucide-react-native";
 import ProductCard from "@/components/ProductCard";
@@ -53,7 +53,7 @@ export default function SearchScreen() {
   }, [searchQuery, allProducts]); // คำนวณใหม่เมื่อ searchQuery หรือ allProducts เปลี่ยน
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaProvider className="flex-1 bg-background">
       <View className="flex-1">
         {/* 1. ส่วน Header และ Search Bar */}
         <View className="flex-row items-center p-4 border-b border-border bg-card">
@@ -111,6 +111,6 @@ export default function SearchScreen() {
           }
         />
       </View>
-    </SafeAreaView>
+    </SafeAreaProvider>
   );
 }

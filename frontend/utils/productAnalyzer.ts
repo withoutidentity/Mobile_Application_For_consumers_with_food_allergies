@@ -6,13 +6,11 @@ export function analyzeProduct(
   allAllergens: Allergen[] // 1. รับรายการ allergen ทั้งหมดเข้ามา
 ) {
   // userProfile.allergens คือ array ของ allergen id (number)
-  const userAllergenIds = userProfile.allergens;
+  const userAllergenIds = userProfile.allergens.map(ua => ua.allergenId);
   const productAllergenWarnings = product.allergenWarnings;
 
   // 2. หาข้อมูล allergen ที่ผู้ใช้แพ้ จาก id ที่ระบุในโปรไฟล์
-  const userAllergenDetails = allAllergens.filter((allergen) =>
-      userAllergenIds.includes(allergen.id)
-    );
+  const userAllergenDetails = allAllergens.filter((allergen) => userAllergenIds.includes(allergen.id));
 
   // 3. สร้าง list ของชื่อและชื่อแฝงทั้งหมดที่ผู้ใช้แพ้ (ในรูปแบบ lowercase)
   const allUserAllergenNames = userAllergenDetails.flatMap((allergen) =>

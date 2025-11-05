@@ -21,37 +21,66 @@ export default function ScannerScreen() {
     }
   }, [permission, requestPermission]);
 
-  const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
-      if (scanned) return;
-      
-      setScanned(true);
-      
-      try {
-        const products = await getProducts();
-        const product = findProductByBarcode(data, products);
-        
-        if (product) {
-          router.push(`/product/${product.id}`);
-        } else {
-          Alert.alert(
-            'Product Not Found',
-            'We couldn\'t find this product in our database. Please try scanning another product.',
-            [
-              {
-                text: 'OK',
-                onPress: () => setScanned(false),
-              },
-            ]
-          );
-        }
-      } catch (error) {
-        console.error('Failed to load products', error);
-        Alert.alert(
-          'Error',
-          'Unable to load product data. Please try again later.',)
-      };
-
+  // Animate scan line continuously
+  useEffect(() => {
+    if (!scanned) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scanLinePosition, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scanLinePosition, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      scanLinePosition.setValue(0);
     }
+  }, [scanned]);
+
+  const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
+    if (scanned) return;
+    
+    setScanned(true);
+    
+    try {
+      const products = await getProducts();
+      const product = findProductByBarcode(data, products);
+      
+      if (product) {
+        router.push(`/product/${product.id}`);
+        setScanned(false)
+      } else {
+        Alert.alert(
+          'Product Not Found',
+          'We couldn\'t find this product in our database. Please try scanning another product.',
+          [
+            {
+              text: 'OK',
+              onPress: () => setScanned(false),
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Failed to load products', error);
+      Alert.alert(
+        'Error',
+        'Unable to load product data. Please try again later.',
+        [
+          {
+            text: 'OK',
+            onPress: () => setScanned(false),
+          },
+        ]
+      );
+    }
+  };
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -84,7 +113,7 @@ export default function ScannerScreen() {
 
   const scanLineTranslateY = scanLinePosition.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 100],
+    outputRange: [0, 180],
   });
 
   return (
@@ -108,10 +137,16 @@ export default function ScannerScreen() {
 
           {/* Barcode scanning area */}
           <View style={styles.scanFrame}>
-            {/* Corner decorations */}
+            {/* Corner decorations - Top Left */}
             <View style={styles.cornerTopLeft} />
+            
+            {/* Corner decorations - Top Right */}
             <View style={styles.cornerTopRight} />
+            
+            {/* Corner decorations - Bottom Left */}
             <View style={styles.cornerBottomLeft} />
+            
+            {/* Corner decorations - Bottom Right */}
             <View style={styles.cornerBottomRight} />
             
             {/* Animated scan line */}
@@ -143,24 +178,11 @@ export default function ScannerScreen() {
 
           {/* Bottom section */}
           <View style={styles.bottomSection}>
-            {scanned ? (
+            {scanned && (
               <View style={styles.statusContainer}>
-                <Text style={styles.statusText}>✓ สแกนสำเร็จ</Text>
+                <Text style={styles.statusText}>กำลังตรวจสอบ...</Text>
               </View>
-            ) : (
-              <Text style={styles.instructions}>
-                กรุณาวางบาร์โค้ดให้อยู่ในแนวนอน
-              </Text>
             )}
-
-            <View style={styles.buttonContainer}>
-              <Button
-                title={scanned ? "สแกนอีกครั้ง" : "พลิกกล้อง"}
-                onPress={scanned ? () => setScanned(false) : toggleCameraFacing}
-                variant={scanned ? "primary" : "outline"}
-                style={scanned ? styles.scanButton : styles.flipButton}
-              />
-            </View>
           </View>
         </View>
       </CameraView>
@@ -190,9 +212,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 60,
   },
-  scanIcon: {
-    marginBottom: 16,
-  },
   mainTitle: {
     color: '#fff',
     fontSize: 28,
@@ -206,7 +225,7 @@ const styles = StyleSheet.create({
   },
   scanFrame: {
     width: '85%',
-    height: 120,
+    height: 200,
     alignSelf: 'center',
     backgroundColor: 'transparent',
     justifyContent: 'center',
@@ -217,52 +236,52 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 40,
-    height: 40,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: Colors.primary,
-    borderTopLeftRadius: 8,
+    width: 50,
+    height: 50,
+    borderTopWidth: 5,
+    borderLeftWidth: 5,
+    borderColor: '#4fd1c5',
+    borderTopLeftRadius: 12,
   },
   cornerTopRight: {
     position: 'absolute',
     top: 0,
     right: 0,
-    width: 40,
-    height: 40,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderColor: Colors.primary,
-    borderTopRightRadius: 8,
+    width: 50,
+    height: 50,
+    borderTopWidth: 5,
+    borderRightWidth: 5,
+    borderColor: '#4fd1c5',
+    borderTopRightRadius: 12,
   },
   cornerBottomLeft: {
     position: 'absolute',
     bottom: 0,
     left: 0,
-    width: 40,
-    height: 40,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderColor: Colors.primary,
-    borderBottomLeftRadius: 8,
+    width: 50,
+    height: 50,
+    borderBottomWidth: 5,
+    borderLeftWidth: 5,
+    borderColor: '#4fd1c5',
+    borderBottomLeftRadius: 12,
   },
   cornerBottomRight: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 40,
-    height: 40,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderColor: Colors.primary,
-    borderBottomRightRadius: 8,
+    width: 50,
+    height: 50,
+    borderBottomWidth: 5,
+    borderRightWidth: 5,
+    borderColor: '#4fd1c5',
+    borderBottomRightRadius: 12,
   },
   scanLine: {
     position: 'absolute',
     width: '100%',
-    height: 5,
-    backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
+    height: 3,
+    backgroundColor: '#4fd1c5',
+    shadowColor: '#4fd1c5',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
@@ -278,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   barcodeLine: {
-    height: 40,
+    height: 50,
     backgroundColor: '#fff',
     borderRadius: 1,
   },
@@ -289,34 +308,15 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   statusContainer: {
-    backgroundColor: 'rgba(76, 175, 80, 0.9)',
+    backgroundColor: 'rgba(79, 209, 197, 0.9)',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    marginBottom: 30,
   },
   statusText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
-  },
-  instructions: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 40,
-  },
-  buttonContainer: {
-    width: '80%',
-  },
-  flipButton: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderColor: 'rgba(255,255,255,0.5)',
-    borderWidth: 1,
-  },
-  scanButton: {
-    backgroundColor: Colors.primary,
   },
   icon: {
     marginBottom: 20,

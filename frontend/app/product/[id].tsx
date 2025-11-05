@@ -151,8 +151,8 @@ export default function ProductDetailScreen() {
           {product.allergenWarnings.length > 0 ? (
             product.allergenWarnings.map((warningName: string, index: number) => {
               // Find the allergen details from the full list by name
-              const allergen = allAllergens.find(a => a.name.toLowerCase() === warningName.toLowerCase());
-              const isUserAllergen = allergen ? profile.allergens.includes(allergen.id) : false;
+              const allergen = allAllergens.find(a => a.name.toLowerCase() === warningName.toLowerCase()); // Find the allergen object from allAllergens
+              const isUserAllergen = allergen ? profile.allergens.some(ua => ua.allergenId === allergen.id) : false; // Check if the user's profile contains this allergen by its ID
               
               return (
                 <View 

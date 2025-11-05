@@ -3,11 +3,19 @@ export interface Allergen {
   name: string;
   altNames: string[];
   description: string;
-  defaultLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  defaultLevel: Severity;
+}
+
+export type Severity = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface UserAllergy {
+  allergenId: number;
+  severity: Severity;
 }
 
 export interface UserProfile {
-  allergens: number[]; // IDs of allergens
+  // เปลี่ยนจาก number[] เป็น UserAllergy[]
+  allergens: UserAllergy[];
   dietaryRestrictions: string[];
   name?: string;
   emergencyContact?: string;

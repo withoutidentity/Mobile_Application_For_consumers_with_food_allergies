@@ -14,14 +14,16 @@ import {
   StyleSheet, // 1. Import StyleSheet
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Allergen } from "@/types";
+import { Allergen, Severity } from "@/types";
 
 export default function AllergenProfileScreen() {
   const router = useRouter();
-  const { profile, addAllergen, removeAllergen } = useUserProfile();
+  const { profile, updateAllergen, removeAllergen } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
+  // State สำหรับเก็บรายการที่ถูกเลือกชั่วคราวก่อนบันทึก
+  const [pendingSelection, setPendingSelection] = useState<number | null>(null);
 
   useEffect(() => {
     const loadAllergens = async () => {
@@ -39,12 +41,27 @@ export default function AllergenProfileScreen() {
       )
   );
 
-  const handleToggleAllergen = (allergenId: number) => {
-    if (profile.allergens.includes(allergenId)) {
+  const handleToggleAllergen = (allergenId: number, isCurrentlySelected: boolean) => {
+    const isPending = pendingSelection === allergenId;
+    // ถ้าการ์ดถูกเลือกอยู่แล้ว (ไม่ว่าจะจาก profile หรือเป็น pending) ให้ทำการลบ
+    if (isCurrentlySelected || isPending) {
       removeAllergen(allergenId);
+      if (isPending) {
+        setPendingSelection(null);
+      }
     } else {
-      addAllergen(allergenId);
+      // ถ้ายังไม่ได้เลือก ให้ตั้งเป็น pending เพื่อรอเลือก severity
+      setPendingSelection(allergenId);
       if (showOnboarding) setShowOnboarding(false);
+    }
+  };
+
+  const handleSeverityChange = (allergenId: number, severity: Severity) => {
+    // เมื่อเลือก severity แล้ว ค่อยทำการบันทึก
+    updateAllergen(allergenId, severity);
+    // ล้าง pending selection ออก
+    if (pendingSelection === allergenId) {
+      setPendingSelection(null);
     }
   };
 
@@ -70,7 +87,7 @@ export default function AllergenProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.safeContainer}>
       {/* Custom Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -109,14 +126,27 @@ export default function AllergenProfileScreen() {
 
         {/* Allergens List */}
         <View style={styles.listContainer}>
-          {filteredAllergens.map((allergen) => (
-            <AllergenCard
-              key={allergen.id}
-              allergen={allergen}
-              selected={profile.allergens.includes(allergen.id)}
-              onToggle={handleToggleAllergen}
-            />
-          ))}
+          {filteredAllergens.map((allergen) => {
+            const userAllergy = profile?.allergens.find(a => a.allergenId === allergen.id);
+            // ตรวจสอบว่ารายการนี้ถูกเลือกอยู่ (ทั้งจาก profile และ pending) หรือไม่
+            const isSelected = !!userAllergy || pendingSelection === allergen.id;
+            const currentSeverity = userAllergy?.severity || 'MEDIUM'; // กำหนดค่าเริ่มต้น
+            return (
+              <AllergenCard
+                key={allergen.id}
+                allergen={allergen}
+                selected={isSelected}
+                severity={currentSeverity}
+                onToggle={() => {
+                  // เมื่อกดที่ Card, ถ้ายังไม่ได้เลือก ให้ทำการเลือก (pending)
+                  // ถ้าเลือกแล้ว (ทั้งใน profile หรือ pending) ให้ทำการลบ
+                  // นี่คือ logic เดิมที่ถูกต้องแล้ว
+                  handleToggleAllergen(allergen.id, !!userAllergy);
+                }}
+                onSeverityChange={(severity) => handleSeverityChange(allergen.id, severity)}
+              />
+            );
+          })}
 
           {filteredAllergens.length === 0 && (
             <View style={styles.emptyStateContainer}>
@@ -133,6 +163,10 @@ export default function AllergenProfileScreen() {
 
 // 3. สร้าง StyleSheet.create
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff", // สีเดียวกับ header เพื่อให้พื้นหลัง status bar สวยงาม
+  },
   container: {
     flex: 1,
     backgroundColor: "#ffffff",

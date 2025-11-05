@@ -23,27 +23,27 @@ export default function SettingsScreen() {
     Alert.alert('เร็วๆ นี้', 'การตั้งค่าการแจ้งเตือนจะพร้อมใช้งานในอัปเดตถัดไป');
   };
 
-  const handleClearProfile = () => {
-    Alert.alert(
-      'ลบโปรไฟล์',
-      'คุณแน่ใจหรือไม่ว่าต้องการลบโปรไฟล์สารก่อภูมิแพ้? ข้อมูลสารก่อภูมิแพ้ที่บันทึกไว้ทั้งหมดของคุณจะถูกลบ',
-      [
-        { text: 'ยกเลิก', style: 'cancel' },
-        {
-          text: 'ลบ',
-          style: 'destructive',
-          onPress: () => {
-            saveProfile({
-              allergens: [],
-              dietaryRestrictions: [],
-              name: profile.name,
-              emergencyContact: profile.emergencyContact,
-            });
-          },
-        },
-      ]
-    );
-  };
+  // const handleClearProfile = () => {
+  //   Alert.alert(
+  //     'ลบโปรไฟล์',
+  //     'คุณแน่ใจหรือไม่ว่าต้องการลบโปรไฟล์สารก่อภูมิแพ้? ข้อมูลสารก่อภูมิแพ้ที่บันทึกไว้ทั้งหมดของคุณจะถูกลบ',
+  //     [
+  //       { text: 'ยกเลิก', style: 'cancel' },
+  //       {
+  //         text: 'ลบ',
+  //         style: 'destructive',
+  //         onPress: () => {
+  //           saveProfile({
+  //             allergens: [],
+  //             dietaryRestrictions: [],
+  //             name: profile.name,
+  //             emergencyContact: profile.emergencyContact,
+  //           });
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
 
   const handleLogout = () => {
     removeToken();
@@ -126,14 +126,14 @@ export default function SettingsScreen() {
       </View>
 
       {/* Data */}
-      <View className="mb-6">
+      {/* <View className="mb-6">
         <Button
           title="ลบโปรไฟล์สารก่อภูมิแพ้"
           onPress={handleClearProfile}
           variant="danger"
           icon={<Trash2 size={16} color="#fff" />}
         />
-      </View>
+      </View> */}
 
       {/* Logout */}
       <View className="mb-6">

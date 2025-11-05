@@ -7,14 +7,17 @@ import {
   Scan,
 } from "lucide-react-native";
 import React from "react";
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View, TouchableOpacity, Platform } from "react-native";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         header: ({ options }) => (
-          <View className="bg-teal-600 px-4 py-3">
+          <View 
+            className="bg-teal-600 px-4 justify-center"
+            style={{ height: 56 }} // กำหนดความสูงของ header เป็นค่าคงที่
+          >
             <Text className="text-white font-semibold text-lg">
               {options.title}
             </Text>
@@ -24,6 +27,9 @@ export default function TabLayout() {
           height: 60,
           paddingBottom: 6,
           paddingTop: 6,
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#e5e5e5',
         },
         tabBarActiveTintColor: "#2A9D8F",
         tabBarInactiveTintColor: "#ccc",
@@ -52,21 +58,24 @@ export default function TabLayout() {
         name="scanner"
         options={{
           title: "Scan",
-          tabBarIcon: ({ color }) => <Scan size={30} color={color} />, // ส่วนนี้จริงๆ ไม่ได้ใช้
+          tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
           
-          // vvv ส่วนนี้คือพระเอกของงาน vvv
           tabBarButton: ({ onPress }) => (
             <TouchableOpacity
               onPress={onPress}
               style={{
-                top: -15, // 1. ดันปุ่มให้ลอยขึ้นไปด้านบน 15px
-                backgroundColor: "#2A9D8F", // 2. ใส่สีพื้นหลัง
-                borderRadius: 40, // 3. ทำให้ขอบมน (คู่กับ width/height เพื่อให้เป็นวงกลม)
-                width: 70,        // 4. กำหนดขนาด
-                height: 70,       // 5. กำหนดขนาด
+                top: -15,
+                backgroundColor: "#2A9D8F",
+                borderRadius: 40,
+                width: 70,
+                height: 70,
                 justifyContent: "center",
                 alignItems: "center",
-                // ... ส่วนที่เหลือคือการใส่เงา (Shadow/Elevation)
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 8,
               }}
             >
               <Scan size={36} color="white" /> 
@@ -79,7 +88,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: "chat",
+          title: "Chat",
           tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,
         }}
       />

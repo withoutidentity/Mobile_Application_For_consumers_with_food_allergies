@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useEffect, useState } from 'react';
-import { Allergen, UserProfile } from '@/types';
+import { UserProfile, UserAllergy, Severity } from '@/types';
 import { useAuth } from './AuthContext';
 import { getMyProfile, updateUserAllergens } from "@/data/userService";
 
@@ -42,31 +42,57 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
 
   const saveProfile = async (updatedProfile: UserProfile) => {
     try {
-      // Now this function updates the backend
-      await updateUserAllergens(updatedProfile.allergens); 
-      // Refetch the profile from the API to ensure UI is in sync with the database
-      await loadProfileFromAPI();
+      // 1. Optimistic Update: อัปเดต state ใน UI ทันทีเพื่อให้ตอบสนองเร็ว
+      setProfile(updatedProfile);
+
+      // 2. ส่งข้อมูลไปที่ Backend ในเบื้องหลัง
+      // เราไม่จำเป็นต้อง await หรือ refetch ข้อมูลใหม่ที่นี่
+      // เพราะ UI ได้อัปเดตไปแล้ว
+      updateUserAllergens(updatedProfile.allergens).catch(error => {
+        console.error('Failed to sync profile to API, rolling back UI is recommended:', error);
+        // ในแอปพลิเคชันจริง อาจจะต้องมี logic ในการ rollback UI กลับไปสถานะเดิมหากการบันทึกผิดพลาด
+      });
     } catch (error) {
-      console.error('Failed to save profile to API:', error);
+      console.error('An error occurred during the save process:', error);
     }
   };
 
-  const addAllergen = async (allergenId: number) => {
-    if (!profile.allergens.includes(allergenId)) {
-      const updatedProfile = {
-        ...profile,
-        allergens: [...profile.allergens, allergenId],
-      };
-      await saveProfile(updatedProfile); // This will call the API
-    }
+  const updateAllergen = (allergenId: number, severity: Severity) => {
+    setProfile(currentProfile => {
+      // หาก currentProfile ไม่มีค่า (ซึ่งไม่ควรจะเกิดขึ้น) ให้คืนค่าเดิมกลับไป
+      // เพื่อป้องกันการคืนค่า null ซึ่งผิดประเภท
+      if (!currentProfile) return currentProfile;
+
+      const existingAllergenIndex = currentProfile.allergens.findIndex(
+        (a) => a.allergenId === allergenId
+      );
+
+      let newAllergens: UserAllergy[];
+
+      if (existingAllergenIndex > -1) {
+        newAllergens = currentProfile.allergens.map((a, index) =>
+          index === existingAllergenIndex ? { ...a, severity } : a
+        );
+      } else {
+        newAllergens = [...currentProfile.allergens, { allergenId, severity }];
+      }
+      
+      const updatedProfile = { ...currentProfile, allergens: newAllergens };
+      saveProfile(updatedProfile); // saveProfile จะจัดการการส่งข้อมูลไป backend เอง
+      return updatedProfile;
+    });
   };
 
-  const removeAllergen = async (allergenId: number) => {
-    const updatedProfile = {
-      ...profile,
-      allergens: profile.allergens.filter(id => id !== allergenId),
-    };
-    await saveProfile(updatedProfile);
+
+  const removeAllergen = (allergenId: number) => {
+    setProfile(currentProfile => {
+      if (!currentProfile) return currentProfile;
+
+      const newAllergens = currentProfile.allergens.filter(allergy => allergy.allergenId !== allergenId);
+      const updatedProfile = { ...currentProfile, allergens: newAllergens };
+      saveProfile(updatedProfile);
+      return updatedProfile;
+    });
   };
 
   const addDietaryRestriction = async (restriction: string) => {
@@ -91,12 +117,13 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
     const newProfile = { ...profile, ...updatedProfile };
     await saveProfile(newProfile);
   };
+  
 
   return {
     profile,
     isLoading,
     isFirstLaunch,
-    addAllergen,
+    updateAllergen,
     removeAllergen,
     addDietaryRestriction,
     removeDietaryRestriction,

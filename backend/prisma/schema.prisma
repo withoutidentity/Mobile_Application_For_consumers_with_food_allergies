@@ -89,6 +89,7 @@ model UserAllergy {
   allergen        Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
   severity        Severity   // ระดับความรุนแรงที่ผู้ใช้ระบุเอง (เฉพาะบุคคล)
 
+  @@unique([userId, allergenId])
   @@map("user_allergies")
 }
 

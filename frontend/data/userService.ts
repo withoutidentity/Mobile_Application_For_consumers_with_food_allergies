@@ -30,7 +30,14 @@ type BackendUser = {
   email: string;
   emergencyContact: string | null;
   dietaryRestrictions: string[];
-  allergies: { allergenId: number }[]; // Assuming this structure from backend
+  // ปรับ Type ให้ตรงกับข้อมูลใหม่จาก Backend
+  allergies: {
+    severity: 'LOW' | 'MEDIUM' | 'HIGH';
+    allergen: {
+      id: number;
+      name: string;
+    };
+  }[];
 };
 
 export const getMyProfile = async (): Promise<UserProfile> => { 
@@ -42,13 +49,20 @@ export const getMyProfile = async (): Promise<UserProfile> => {
     name: user.name,
     emergencyContact: user.emergencyContact || undefined,
     dietaryRestrictions: user.dietaryRestrictions,
-    allergens: user.allergies.map((a) => a.allergenId),
+    // เปลี่ยนการ map ข้อมูลให้ถูกต้อง
+    allergens: user.allergies.map(a => ({ allergenId: a.allergen.id, severity: a.severity })),
   };
 };
  
 export const updateUserAllergens = async (
-  allergenIds: number[]
+  allergies: { allergenId: number; severity: 'LOW' | 'MEDIUM' | 'HIGH' }[]
 ): Promise<void> => {
-  // Assuming the backend expects an array of numbers
-  await apiClient.put('/users/me/allergies', { allergenIds });
+  if (!Array.isArray(allergies)) {
+    console.error("Invalid allergies format:", allergies);
+    return;
+  }
+
+  console.log("Sending updated allergies:", JSON.stringify(allergies, null, 2));
+
+  await apiClient.put('/users/me/allergies', { allergies });
 };
