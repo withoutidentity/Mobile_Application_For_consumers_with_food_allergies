@@ -1,19 +1,19 @@
 import Button from '@/components/Button';
 import Colors from '@/constants/Colors';
 import getProducts from '@/data/productService';
+import { addScanToHistory } from '@/data/userService'; // 1. Import addScanToHistory
 import { findProductByBarcode } from '@/utils/productAnalyzer';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import { AlertCircle, Scan } from 'lucide-react-native';
-import React, { useEffect, useState, useRef } from 'react';
-import { Alert, StyleSheet, Text, View, Animated } from 'react-native';
+import { AlertCircle } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [scanned, setScanned] = useState(false);
   const router = useRouter();
-  const scanLinePosition = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -21,27 +21,6 @@ export default function ScannerScreen() {
     }
   }, [permission, requestPermission]);
 
-  // Animate scan line continuously
-  useEffect(() => {
-    if (!scanned) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scanLinePosition, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scanLinePosition, {
-            toValue: 0,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      scanLinePosition.setValue(0);
-    }
-  }, [scanned]);
 
   const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
     if (scanned) return;
@@ -53,6 +32,7 @@ export default function ScannerScreen() {
       const product = findProductByBarcode(data, products);
       
       if (product) {
+        addScanToHistory(product.id); // 2. เรียกใช้ฟังก์ชันเพื่อบันทึกประวัติ
         router.push(`/product/${product.id}`);
         setScanned(false)
       } else {
@@ -111,11 +91,6 @@ export default function ScannerScreen() {
     );
   }
 
-  const scanLineTranslateY = scanLinePosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 180],
-  });
-
   return (
     <View style={styles.container}>
       <CameraView
@@ -149,16 +124,9 @@ export default function ScannerScreen() {
             {/* Corner decorations - Bottom Right */}
             <View style={styles.cornerBottomRight} />
             
-            {/* Animated scan line */}
+            {/* Static scan line */}
             {!scanned && (
-              <Animated.View
-                style={[
-                  styles.scanLine,
-                  {
-                    transform: [{ translateY: scanLineTranslateY }],
-                  },
-                ]}
-              />
+              <View style={styles.scanLine} />
             )}
 
             {/* Barcode icon in center */}

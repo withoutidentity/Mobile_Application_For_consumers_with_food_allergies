@@ -37,11 +37,11 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
     >
       <View style={styles.header}>
         <Text style={styles.name}>{allergen.name}</Text>
-        <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergen.defaultLevel) }]}>
+        {/* <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergen.defaultLevel) }]}>
           <Text style={styles.severityText}>
             {allergen.defaultLevel.charAt(0).toUpperCase() + allergen.defaultLevel.slice(1)}
           </Text>
-        </View>
+        </View> */}
       </View>
       
       <Text style={styles.description}>{allergen.description}</Text>

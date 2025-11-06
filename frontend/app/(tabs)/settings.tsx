@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import { useUserProfile } from "@/context/UserProfileContext";
 import { useRouter } from "expo-router";
-import { Bell, HelpCircle, Moon, Trash2, User } from "lucide-react-native";
+import { Bell, HelpCircle, Moon, Trash2, User, ShieldCheck } from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useAuth } from "@/context/AuthContext";
@@ -72,8 +72,9 @@ export default function SettingsScreen() {
         <Text className="text-lg font-semibold text-[#333333] mb-4">
           โปรไฟล์
         </Text>
+        {/* ข้อมูลผู้ใช้  */}
         <Pressable
-          className="flex-row items-center py-3"
+          className="flex-row items-center py-3 border-b border-[#E5E5E5]"
           onPress={() => router.push("/user-profile")}
         >
           <User size={20} color="#333333" className="mr-3" />
@@ -81,18 +82,12 @@ export default function SettingsScreen() {
             โปรไฟล์ประวัติส่วนตัว
           </Text>
         </Pressable>
-      </View>
-
-      {/* Profile Settings */}
-      <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">
-          โปรไฟล์
-        </Text>
+        {/* หน้ากรอกสารก่อภูมิแพ้  */}
         <Pressable
           className="flex-row items-center py-3"
           onPress={() => router.push("/allergen-profile")}
         >
-          <User size={20} color="#333333" className="mr-3" />
+          <ShieldCheck size={20} color="#333333" className="mr-3" />
           <Text className="text-base text-[#333333]">โปรไฟล์สารก่อภูมิแพ้</Text>
         </Pressable>
       </View>

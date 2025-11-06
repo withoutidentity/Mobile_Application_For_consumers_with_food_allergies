@@ -79,3 +79,66 @@ export const updateUserAllergies = async (req: AuthRequest, res: Response) => {
 
   return res.status(200).json({ message: 'Allergies updated successfully' });
 };
+
+/**
+ * @desc    Add a product to scan history
+ * @route   POST /api/users/me/history
+ * @access  Private
+ */
+export const addScanHistory = async (req: AuthRequest, res: Response) => {
+  const user = req.user;
+  const { productId } = req.body as { productId: number };
+
+  if (!user) {
+    return res.status(401).json({ message: 'Unauthorized: User not found in request' });
+  }
+
+  if (!productId) {
+    return res.status(400).json({ message: 'Product ID is required' });
+  }
+
+  try {
+    const historyEntry = await prisma.scanHistory.create({
+      data: {
+        userId: user.id,
+        productId: productId,
+      },
+    });
+    return res.status(201).json(historyEntry);
+  } catch (error) {
+    console.error('Failed to add scan history:', error);
+    return res.status(500).json({ message: 'Internal server error while adding scan history' });
+  }
+};
+
+/**
+ * @desc    Get user's scan history
+ * @route   GET /api/users/me/history
+ * @access  Private
+ */
+export const getScanHistory = async (req: AuthRequest, res: Response) => {
+  const user = req.user;
+
+  if (!user) {
+    return res.status(401).json({ message: 'Unauthorized: User not found in request' });
+  }
+
+  try {
+    const history = await prisma.scanHistory.findMany({
+      where: { userId: user.id },
+      orderBy: { scannedAt: 'desc' },
+      take: 5, // ดึงข้อมูลล่าสุด 5 รายการ
+      include: {
+        product: true, // ดึงข้อมูลสินค้าที่เกี่ยวข้องมาด้วย
+      },
+    });
+
+    // แก้ไข: map เพื่อดึงข้อมูล product และกรองรายการที่เป็น null ออก
+    const products = history.map(entry => entry.product).filter(Boolean);
+
+    res.json(products);
+  } catch (error) {
+    console.error('Failed to get scan history:', error);
+    return res.status(500).json({ message: 'Internal server error while getting scan history' });
+  }
+};

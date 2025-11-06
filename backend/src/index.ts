@@ -6,7 +6,7 @@ import cors from 'cors';
 import { errorHandler } from "./middlewares/errorHandler";
 import productRoutes from "./routes/product.routes";
 import allergenRoutes from './routes/allergen.routes';
-import userRoutes from './routes/userRoutes';
+import userRoutes from './routes/user.routes';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getMyProfile, updateUserAllergies } from '../controllers/user.controller';
+import { getMyProfile, updateUserAllergies, addScanHistory, getScanHistory } from '../controllers/user.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const userRoutes = Router();
@@ -9,5 +9,6 @@ userRoutes.use(authenticateToken);
 
 userRoutes.get('/me', getMyProfile);
 userRoutes.put('/me/allergies', updateUserAllergies);
-
+userRoutes.post('/me/history', addScanHistory); // เพิ่ม route สำหรับบันทึกประวัติการสแกน
+userRoutes.get('/me/scanHistory', getScanHistory);
 export default userRoutes;

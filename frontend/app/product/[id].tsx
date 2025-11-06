@@ -6,15 +6,17 @@ import getProducts from '@/data/productService';
 import { Allergen, Product } from '@/types';
 import { analyzeProduct } from '@/utils/productAnalyzer';
 import { useLocalSearchParams } from 'expo-router';
-import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react-native';
+import { AlertCircle, AlertTriangle, CheckCircle, Info, ArrowLeft } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { fetchAllergens } from '@/data/allergens';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import allergens from '@/data/allergens';
+import { useRouter } from 'expo-router';
 
 export default function ProductDetailScreen() {
   // useLocalSearchParams จะคืนค่าเป็น string เสมอ
   const { id: idFromParams } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { profile } = useUserProfile();
   
   // กำหนด Type ให้ชัดเจน
@@ -89,6 +91,11 @@ export default function ProductDetailScreen() {
         ) : (
           <View style={styles.placeholderImage} />
         )}
+        {/* Back Button */}
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={24} color="#fff" />
+        </TouchableOpacity>
+        
       </View>
       
       <View style={styles.productInfo}>
@@ -247,6 +254,16 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     backgroundColor: '#e0e0e0',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    padding: 8,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   productInfo: {
     padding: 16,

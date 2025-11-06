@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useEffect, useState } from 'react';
-import { UserProfile, UserAllergy, Severity } from '@/types';
+import { UserProfile, UserAllergy, Severity } from '@/types'; 
 import { useAuth } from './AuthContext';
 import { getMyProfile, updateUserAllergens } from "@/data/userService";
 
@@ -17,11 +17,13 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   const { token, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // Load profile only when auth is done and token is available
+    // 1. ถ้า auth loading เสร็จแล้ว และมี token (ผู้ใช้ล็อกอินอยู่)
     if (!authLoading && token) {
       loadProfileFromAPI();
-    } else if (!authLoading && !token) {
-      // If user is logged out, clear profile and stop loading
+    } 
+    // 2. ถ้า auth loading เสร็จแล้ว และไม่มี token (ผู้ใช้ล็อกเอาท์)
+    else if (!authLoading && !token) {
+      // ให้ล้างข้อมูลโปรไฟล์ใน state และหยุด loading
       setProfile({ allergens: [], dietaryRestrictions: [] });
       setIsLoading(false);
     }
@@ -34,7 +36,8 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
       setProfile(apiProfile);
     } catch (error) {
       console.error('Failed to load profile from API:', error);
-      // Optionally, handle first launch or fallback to local storage
+      // หากดึงข้อมูลไม่สำเร็จ อาจจะ fallback ไปใช้ข้อมูลเก่า หรือเคลียร์โปรไฟล์
+      // ในที่นี้เราจะปล่อยให้เป็น state ว่างเปล่าไปก่อน
     } finally {
       setIsLoading(false);
     }

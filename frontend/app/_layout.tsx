@@ -69,14 +69,14 @@ export default function RootLayout() {
   // Provider ทั้งหมดวางไว้ที่นี่ ถูกต้องแล้วครับ
   return (
     <QueryClientProvider client={queryClient}>
-      <UserProfileProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <UserProfileProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <StatusBar style="light" />
             <RootLayoutNav />
           </GestureHandlerRootView>
-        </AuthProvider>
-      </UserProfileProvider>
+        </UserProfileProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
