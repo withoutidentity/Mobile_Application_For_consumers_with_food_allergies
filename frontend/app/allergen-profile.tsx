@@ -36,9 +36,9 @@ export default function AllergenProfileScreen() {
   const filteredAllergens = allAllergens.filter(
     (allergen) =>
       allergen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      allergen.altNames.some((alias) =>
+      (allergen.altNames && allergen.altNames.some((alias) =>
         alias.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      ))
   );
 
   const handleToggleAllergen = (allergenId: number, isCurrentlySelected: boolean) => {

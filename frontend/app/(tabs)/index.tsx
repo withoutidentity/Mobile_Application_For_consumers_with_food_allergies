@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { Scan, Search, AlertCircle } from "lucide-react-native";
 import Button from "@/components/Button";
 import { useUserProfile } from "@/context/UserProfileContext";
-import getProducts from '@/data/productService';
+import { getScanHistory } from '@/data/userService';
 import { fetchAllergens } from '@/data/allergens';
 import ProductCard from "@/components/ProductCard";
 import EmptyState from "@/components/EmptyState";
@@ -18,11 +18,11 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     (async () => {
-      // Fetch both products and allergens
-      const products = await getProducts();
+      // ดึงข้อมูลประวัติการสแกนและข้อมูลสารก่อภูมิแพ้ทั้งหมด
+      const historyProducts = await getScanHistory();
       const allergens = await fetchAllergens();
 
-      setRecentlyScanned(products.slice(0, 3));
+      setRecentlyScanned(historyProducts);
       setAllAllergens(allergens);
     })();
   }, []);
@@ -111,7 +111,7 @@ export default function HomeScreen() {
               สินค้าล่าสุด
             </Text>
             {recentlyScanned.length > 0 ? (
-              recentlyScanned.map((product) => (
+              recentlyScanned.map((product) => product && (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -140,8 +140,8 @@ export default function HomeScreen() {
               โปรไฟล์การแพ้ของคุณ
             </Text>
             {profile.allergens.length > 0 ? (
-              <View className="flex-row justify-between items-center">
-                <Text className="text-base flex-1 text-text">
+              <View className="flex items-center">
+                <Text className="text-base flex-1 text-text mb-2">
                   คุณมีสารก่อภูมิแพ้ {profile.allergens.length} รายการ
                   ในโปรไฟล์ของคุณ
                 </Text>

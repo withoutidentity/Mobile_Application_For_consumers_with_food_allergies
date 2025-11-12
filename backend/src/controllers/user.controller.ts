@@ -113,7 +113,7 @@ export const addScanHistory = async (req: AuthRequest, res: Response) => {
 
 /**
  * @desc    Get user's scan history
- * @route   GET /api/users/me/history
+ * @route   GET /api/users/me/scanHistory
  * @access  Private
  */
 export const getScanHistory = async (req: AuthRequest, res: Response) => {
@@ -127,16 +127,39 @@ export const getScanHistory = async (req: AuthRequest, res: Response) => {
     const history = await prisma.scanHistory.findMany({
       where: { userId: user.id },
       orderBy: { scannedAt: 'desc' },
-      take: 5, // ดึงข้อมูลล่าสุด 5 รายการ
+      // ดึงประวัติมาเผื่อ สำหรับการกรองรายการซ้ำ (เช่น 20 รายการล่าสุด)
+      take: 20,
       include: {
-        product: true, // ดึงข้อมูลสินค้าที่เกี่ยวข้องมาด้วย
+        product: {
+          include: {
+            allergens: {
+              include: {
+                allergen: {
+                  select: { altNames: true },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    // แก้ไข: map เพื่อดึงข้อมูล product และกรองรายการที่เป็น null ออก
-    const products = history.map(entry => entry.product).filter(Boolean);
+    // สร้าง Logic สำหรับกรองสินค้าที่ไม่ซ้ำกัน
+    const uniqueProducts = [];
+    const seenProductIds = new Set<number>();
 
-    res.json(products);
+    for (const entry of history) {
+      if (entry.product && !seenProductIds.has(entry.product.id)) {
+        seenProductIds.add(entry.product.id);
+        uniqueProducts.push(entry.product);
+      }
+      // หยุดเมื่อได้สินค้าครบ 5 ชิ้น
+      if (uniqueProducts.length >= 5) {
+        break;
+      }
+    }
+
+    res.json(uniqueProducts);
   } catch (error) {
     console.error('Failed to get scan history:', error);
     return res.status(500).json({ message: 'Internal server error while getting scan history' });
