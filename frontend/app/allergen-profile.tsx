@@ -88,14 +88,6 @@ export default function AllergenProfileScreen() {
 
   return (
     <View style={styles.safeContainer}>
-      {/* Custom Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft size={22} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Settings</Text>
-      </View>
-
       {/* Content */}
       <ScrollView style={styles.contentContainer}>
         {/* Header text */}

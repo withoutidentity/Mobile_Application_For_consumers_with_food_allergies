@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { UserProfileProvider } from "@/context/UserProfileContext";
 import { StatusBar } from "expo-status-bar";
+import { UserProfileProvider, useUserProfile } from "@/context/UserProfileContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import "./global.css";
 
@@ -14,59 +14,81 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+// สร้าง Route Map เพื่อกำหนดสิทธิ์การเข้าถึง
+const protectedRoutes: Record<string, string[]> = {
+  // 'ชื่อโฟลเดอร์หรือไฟล์': ['ROLE_ที่เข้าได้']
+  'chat': ['USER'], // สมมติว่ามีหน้า /admin-dashboard
+};
+
 function RootLayoutNav() {
   const { token, loading } = useAuth();
+  const { profile, isLoading: profileLoading } = useUserProfile();
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
-    // ถ้าไม่ loading แล้ว (เช็ก auth เสร็จแล้ว)
-    if (!loading) {
-      // 1. ซ่อน Splash Screen
+    const isAuthLoading = loading || profileLoading;
+
+    // ถ้าไม่ loading แล้ว (เช็ก auth และ profile เสร็จแล้ว)
+    if (!isAuthLoading) {
       SplashScreen.hideAsync();
 
       const inAuthGroup = segments[0] === "(auth)";
+      const currentRoute = segments[segments.length - 1];
 
-      // 2. ตรวจสอบและ Redirect
-      if (token && inAuthGroup) {
-        // ถ้ามี token (ล็อกอินแล้ว) แต่ยังอยู่หน้า (auth)
-        // ให้เด้งไปหน้า (tabs)
+      // 1. จัดการผู้ใช้ที่ยังไม่ได้ล็อกอิน
+      if (!token) {
+        if (!inAuthGroup) {
+          // ถ้าไม่มี token และไม่ได้อยู่ในกลุ่ม (auth), ให้ไปหน้า login
+          router.replace("/login");
+        }
+        return; // หยุดการทำงานส่วนที่เหลือ
+      }
+
+      // 2. จัดการผู้ใช้ที่ล็อกอินแล้ว
+      if (inAuthGroup) {
+        // ถ้ามี token แต่ยังอยู่ในกลุ่ม (auth), ให้ไปหน้าหลัก
         router.replace("/(tabs)");
-      } else if (!token && !inAuthGroup) {
-        // ถ้าไม่มี token (ยังไม่ล็อกอิน) แต่อยู่นอกหน้า (auth)
-        // ให้เด้งไปหน้า (auth)
-        router.replace("/(auth)");
+        return;
+      }
+
+      // 3. ตรวจสอบ Role สำหรับหน้าที่ต้องการป้องกัน
+      const requiredRoles = protectedRoutes[currentRoute];
+      if (requiredRoles && !requiredRoles.includes(profile.role)) {
+        // ถ้าหน้านี้ต้องการ Role แต่ผู้ใช้ไม่มี Role ที่กำหนด
+        // ให้ redirect ไปหน้า forbidden
+        router.replace('/forbidden');
       }
     }
-  }, [loading, token, segments, router]); // ให้ useEffect ทำงานใหม่เมื่อค่าเหล่านี้เปลี่ยน
+  }, [loading, profileLoading, token, profile, segments, router]);
 
-  // 3. ถ้ายัง loading, return null
-  //    (Splash Screen จะยังแสดงผลอยู่)
-  if (loading) {
+  // ถ้ายัง loading auth หรือ profile, ให้แสดง Splash Screen ต่อไป
+  if (loading || profileLoading) {
     return null;
   }
 
-  // 4. เมื่อ loading เสร็จ, ค่อย return <Stack>
-  //    ตอนนี้ LinkingContext จะพร้อมใช้งาน
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
-        {/* คุณสามารถเพิ่มหน้าอื่นๆ ที่อยู่นอก (tabs) และ (auth) ที่นี่ได้
-          เช่น: <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        */}
-      </Stack>
-    </SafeAreaView>
+    <Stack screenOptions={{ 
+      headerBackTitle: "Back",
+      headerStyle: {
+        backgroundColor: "#2A9D8F",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        fontWeight: "600",
+      },
+    }}>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="forbidden" options={{ title: "Forbidden" }} />
+      <Stack.Screen name="symptom/[allergen]" options={{ title: "Symptoms" }} />
+      <Stack.Screen name="product/[id]" options={{ title: "Product Details" }} />
+   </Stack>
   );
 }
 
 // นี่คือ Default Export หลัก
 export default function RootLayout() {
-  // ⛔️ ไม่ต้องมี useEffect ซ่อน Splash Screen ตรงนี้แล้ว
-  //    เราย้ายมันเข้าไปใน RootLayoutNav แล้ว
-
-  // Provider ทั้งหมดวางไว้ที่นี่ ถูกต้องแล้วครับ
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -80,3 +102,21 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+/**
+ * หมายเหตุ:
+ * 1. คุณต้องเพิ่ม field 'role' ใน UserProfile type และในข้อมูลที่ดึงมาจาก getMyProfile()
+ *    เพื่อให้ `profile.role` สามารถใช้งานได้
+ *
+ * 2. ในไฟล์ `app/_layout.tsx` คุณต้องเพิ่มหน้าใหม่ๆ ที่สร้างนอกกลุ่ม (auth) และ (tabs)
+ *    เข้าไปใน <Stack> ด้วย เช่น <Stack.Screen name="types" />
+ *
+ * 3. หากต้องการสร้างหน้า /types ให้สร้างไฟล์ `app/types.tsx`
+ *    ตัวอย่าง:
+ *    // app/types.tsx
+ *    import { View, Text } from 'react-native';
+ *    export default function TypesScreen() {
+ *      return <View><Text>Types Management Page</Text></View>;
+ *    }
+ *
+ */

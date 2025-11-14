@@ -84,12 +84,6 @@ export default function SymptomDetailScreen() {
     <ScrollView className="flex-1 bg-background px-5 py-6">
       {/* Header */}
       <View className="mb-6">
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>Symptom</Text>
-        </View>
         <Text className="text-2xl font-bold text-text mt-2 mb-2">
           {allergenInfo.name} Allergy
         </Text>

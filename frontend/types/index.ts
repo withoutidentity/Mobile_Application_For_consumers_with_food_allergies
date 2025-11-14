@@ -19,6 +19,7 @@ export interface UserProfile {
   dietaryRestrictions: string[];
   name?: string;
   emergencyContact?: string;
+  role: 'USER' | 'ADMIN';
 }
 
 export interface Product {

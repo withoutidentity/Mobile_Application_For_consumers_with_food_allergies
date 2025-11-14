@@ -11,12 +11,10 @@ import React, { useEffect, useState } from 'react';
 import { fetchAllergens } from '@/data/allergens';
 import { Alert, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import allergens from '@/data/allergens';
-import { useRouter } from 'expo-router';
 
 export default function ProductDetailScreen() {
   // useLocalSearchParams จะคืนค่าเป็น string เสมอ
   const { id: idFromParams } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
   const { profile } = useUserProfile();
   
   // กำหนด Type ให้ชัดเจน
@@ -91,11 +89,6 @@ export default function ProductDetailScreen() {
         ) : (
           <View style={styles.placeholderImage} />
         )}
-        {/* Back Button */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#fff" />
-        </TouchableOpacity>
-        
       </View>
       
       <View style={styles.productInfo}>

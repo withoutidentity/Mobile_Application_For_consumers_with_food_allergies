@@ -28,6 +28,7 @@ type BackendUser = {
   id: number;
   name: string;
   email: string;
+  role: 'USER' | 'ADMIN';
   emergencyContact: string | null;
   dietaryRestrictions: string[];
   // ปรับ Type ให้ตรงกับข้อมูลใหม่จาก Backend
@@ -54,6 +55,7 @@ export const getMyProfile = async (): Promise<UserProfile> => {
   // Transform backend data to frontend UserProfile
   return {
     name: user.name,
+    role: user.role,
     emergencyContact: user.emergencyContact || undefined,
     dietaryRestrictions: user.dietaryRestrictions,
     // เปลี่ยนการ map ข้อมูลให้ถูกต้อง

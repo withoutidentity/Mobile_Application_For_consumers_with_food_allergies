@@ -5,34 +5,34 @@ import {
   Settings,
   MessageCircle,
   Scan,
+  Database, 
+  Shield 
 } from "lucide-react-native";
 import React from "react";
 import { Text, View, TouchableOpacity, Platform } from "react-native";
+import { useUserProfile } from "@/context/UserProfileContext";
+import Colors from '@/constants/Colors';
+
 
 export default function TabLayout() {
+  const { profile } = useUserProfile();
+  const isAdmin = profile.role === 'ADMIN';
   return (
     <Tabs
       screenOptions={{
-        header: ({ options }) => (
-          <View 
-            className="bg-teal-600 px-4 justify-center"
-            style={{ height: 56 }} // กำหนดความสูงของ header เป็นค่าคงที่
-          >
-            <Text className="text-white font-semibold text-lg">
-              {options.title}
-            </Text>
-          </View>
-        ),
-        tabBarStyle: {
-          height: 60,
-          paddingBottom: 6,
-          paddingTop: 6,
-          backgroundColor: 'white',
-          borderTopWidth: 1,
-          borderTopColor: '#e5e5e5',
+        tabBarActiveTintColor: Colors.primary,
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: Colors.primary,
         },
-        tabBarActiveTintColor: "#2A9D8F",
-        tabBarInactiveTintColor: "#ccc",
+        headerTintColor: "#fff",
+        headerTitleStyle: {
+          fontWeight: "600",
+        },
+        tabBarStyle: {
+          backgroundColor: "#fff",
+          borderTopColor: "#E5E5E5",
+        },
       }}
     >
       {/* 🏠 Home */}
@@ -101,6 +101,24 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
         }}
       />
+      {isAdmin && (
+        <>
+          <Tabs.Screen
+            name="allergens"
+            options={{
+              title: "Allergens",
+              tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="products"
+            options={{
+              title: "Products",
+              tabBarIcon: ({ color }) => <Database size={24} color={color} />,
+            }}
+          />
+        </>
+      )}
     </Tabs>
   );
 }

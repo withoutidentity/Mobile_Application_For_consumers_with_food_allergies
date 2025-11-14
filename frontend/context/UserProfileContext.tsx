@@ -11,6 +11,7 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   const [profile, setProfile] = useState<UserProfile>({
     allergens: [],
     dietaryRestrictions: [],
+    role: 'USER',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);
@@ -24,7 +25,7 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
     // 2. ถ้า auth loading เสร็จแล้ว และไม่มี token (ผู้ใช้ล็อกเอาท์)
     else if (!authLoading && !token) {
       // ให้ล้างข้อมูลโปรไฟล์ใน state และหยุด loading
-      setProfile({ allergens: [], dietaryRestrictions: [] });
+      setProfile({ allergens: [], dietaryRestrictions: [], role: 'USER' });
       setIsLoading(false);
     }
   }, [token, authLoading]);

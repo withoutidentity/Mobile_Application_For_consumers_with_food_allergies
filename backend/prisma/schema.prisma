@@ -15,11 +15,18 @@ enum Severity {
   HIGH
 }
 
+// บทบาทของผู้ใช้
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id                   Int             @id @default(autoincrement())
   email                String          @unique
   password             String
   name                 String
+  role                 Role            @default(USER)
   dietaryRestrictions  String[]        // เช่น มังสวิรัติ, คีโต, เจ
   emergencyContact     String?
   allergies            UserAllergy[]   // ความสัมพันธ์กับสารก่อภูมิแพ้
