@@ -62,8 +62,8 @@ export default function AdminAllergensScreen() {
   };
 
   const handleSave = () => {
-    if (!formData.name.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    if (!formData.name.trim() || !formData.description.trim()) {
+      Alert.alert('Error', 'Please fill in all required fields (Name and Description).');
       return;
     }
 
