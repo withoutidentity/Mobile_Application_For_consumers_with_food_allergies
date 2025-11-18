@@ -1,7 +1,16 @@
 import Button from "@/components/Button";
 import { useUserProfile } from "@/context/UserProfileContext";
 import { useRouter } from "expo-router";
-import { Bell, HelpCircle, Moon, Trash2, User, ShieldCheck } from "lucide-react-native";
+import { 
+  Bell, 
+  HelpCircle, 
+  Moon, 
+  Trash2, 
+  User, 
+  ShieldCheck, 
+  Package,       // เพิ่มไอคอนสินค้า
+  AlertTriangle  // เพิ่มไอคอนแจ้งเตือน
+} from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useAuth } from "@/context/AuthContext";
@@ -25,28 +34,6 @@ export default function SettingsScreen() {
       "การตั้งค่าการแจ้งเตือนจะพร้อมใช้งานในอัปเดตถัดไป"
     );
   };
-
-  // const handleClearProfile = () => {
-  //   Alert.alert(
-  //     'ลบโปรไฟล์',
-  //     'คุณแน่ใจหรือไม่ว่าต้องการลบโปรไฟล์สารก่อภูมิแพ้? ข้อมูลสารก่อภูมิแพ้ที่บันทึกไว้ทั้งหมดของคุณจะถูกลบ',
-  //     [
-  //       { text: 'ยกเลิก', style: 'cancel' },
-  //       {
-  //         text: 'ลบ',
-  //         style: 'destructive',
-  //         onPress: () => {
-  //           saveProfile({
-  //             allergens: [],
-  //             dietaryRestrictions: [],
-  //             name: profile.name,
-  //             emergencyContact: profile.emergencyContact,
-  //           });
-  //         },
-  //       },
-  //     ]
-  //   );
-  // };
 
   const handleLogout = () => {
     removeToken();
@@ -92,23 +79,6 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
-      {/* Appearance */}
-      {/* <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">ลักษณะที่ปรากฏ</Text>
-        <View className="flex-row justify-between items-center border-b border-[#E5E5E5] py-3">
-          <View className="flex-row items-center flex-1">
-            <Moon size={20} color="#333333" className="mr-3" />
-            <Text className="text-base text-[#333333]">โหมดกลางคืน</Text>
-          </View>
-          <Switch
-            value={darkMode}
-            onValueChange={handleDarkModeToggle}
-            trackColor={{ false: '#ccc', true: '#2A9D8F' }}
-            thumbColor="#fff"
-          />
-        </View>
-      </View> */}
-
       {/* Notifications */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
         <Text className="text-lg font-semibold text-[#333333] mb-4">
@@ -135,53 +105,47 @@ export default function SettingsScreen() {
         <Text className="text-lg font-semibold text-[#333333] mb-4">
           ความช่วยเหลือฉุกเฉิน
         </Text>
-        {/* เปลี่ยนจากแค่แสดงผลเป็นปุ่มที่กดได้ */}
         <Pressable
           className="flex-row items-center justify-between py-3"
-          onPress={() => router.push("/Allergy-relief-guide")} // <-- 4. เพิ่ม onPress
+          onPress={() => router.push("/Allergy-relief-guide")}
         >
           <View className="flex-row items-center">
-            <User size={20} color="#333333" className="mr-3" />
-            {/* 5. เปลี่ยนข้อความให้สื่อความหมาย */}
+            <HelpCircle size={20} color="#333333" className="mr-3" />
             <Text className="text-base text-[#333333]">
               อ่านขั้นตอนการปฐมพยาบาล
             </Text>
           </View>
-          {/* <ChevronsRight size={20} color="#666666" /> */}
         </Pressable>
       </View>
 
-      {/* Emergency Contact */}
-      {/* <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">ติดต่อฉุกเฉิน</Text>
-        <Pressable className="flex-row items-center">
-          <User size={20} color="#333333" className="mr-3" />
-          <View>
-            <Text className="text-sm text-[#666666] mt-1">
-              {profile.emergencyContact || 'กรุณาโทร 1669'}
-            </Text>
-          </View>
+      {/* --- NEW SECTION: Admin / ผู้ดูแลระบบ --- */}
+      <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
+        <Text className="text-lg font-semibold text-[#333333] mb-4">
+          ผู้ดูแลระบบ
+        </Text>
+        
+        {/* Manage Products */}
+        <Pressable
+          className="flex-row items-center py-3 border-b border-[#E5E5E5]"
+          onPress={() => router.push("/allergens")}
+        >
+          <Package size={20} color="#333333" className="mr-3" />
+          <Text className="text-base text-[#333333]">
+            จัดการคลังสินค้า
+          </Text>
         </Pressable>
-      </View> */}
 
-      {/* Support */}
-      {/* <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4"></Text>
-        <Pressable className="flex-row items-center">
-          <HelpCircle size={20} color="#333333" className="mr-3" />
-          <Text className="text-base text-[#333333]">ความช่วยเหลือ & คำถามที่พบบ่อย</Text>
+        {/* Manage Allergens */}
+        <Pressable
+          className="flex-row items-center py-3"
+          onPress={() => router.push("/products")}
+        >
+          <AlertTriangle size={20} color="#333333" className="mr-3" />
+          <Text className="text-base text-[#333333]">
+            จัดการข้อมูลสารก่อภูมิแพ้
+          </Text>
         </Pressable>
-      </View> */}
-
-      {/* Data */}
-      {/* <View className="mb-6">
-        <Button
-          title="ลบโปรไฟล์สารก่อภูมิแพ้"
-          onPress={handleClearProfile}
-          variant="danger"
-          icon={<Trash2 size={16} color="#fff" />}
-        />
-      </View> */}
+      </View>
 
       {/* Logout */}
       <View className="mb-6">

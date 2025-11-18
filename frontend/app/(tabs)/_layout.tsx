@@ -10,13 +10,16 @@ import {
 } from "lucide-react-native";
 import React from "react";
 import { Text, View, TouchableOpacity, Platform } from "react-native";
-import { useUserProfile } from "@/context/UserProfileContext";
+// ไม่จำเป็นต้องเช็ค admin ในไฟล์นี้แล้ว
+// import { useUserProfile } from "@/context/UserProfileContext"; 
 import Colors from '@/constants/Colors';
 
 
 export default function TabLayout() {
-  const { profile } = useUserProfile();
-  const isAdmin = profile.role === 'ADMIN';
+  // ไม่ต้องเช็ค isAdmin ที่นี่
+  // const { profile } = useUserProfile();
+  // const isAdmin = profile.role === 'ADMIN';
+
   return (
     <Tabs
       screenOptions={{
@@ -101,24 +104,26 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
         }}
       />
-      {isAdmin && (
-        <>
-          <Tabs.Screen
-            name="allergens"
-            options={{
-              title: "Allergens",
-              tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
-            }}
-          />
-          <Tabs.Screen
-            name="products"
-            options={{
-              title: "Products",
-              tabBarIcon: ({ color }) => <Database size={24} color={color} />,
-            }}
-          />
-        </>
-      )}
+
+      {/* --- นี่คือส่วนที่แก้ไข --- */}
+      {/* ลบ {isAdmin && ...} ออก แล้วเพิ่ม href: null แทน */}
+      <Tabs.Screen
+        name="allergens"
+        options={{
+          href: null, // <-- ซ่อนจาก Tab Bar
+          title: "Manage Allergens",
+          tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="products"
+        options={{
+          href: null, // <-- ซ่อนจาก Tab Bar
+          title: "Manage Products",
+          tabBarIcon: ({ color }) => <Database size={24} color={color} />,
+        }}
+      />
+      
     </Tabs>
   );
 }
