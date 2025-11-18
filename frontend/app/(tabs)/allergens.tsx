@@ -9,8 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { Plus, Edit2, Trash2, X } from 'lucide-react-native';
+import { Stack, router } from 'expo-router';
+import { Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react-native';
 import { Allergen, Severity } from '@/types';
 import Colors from '@/constants/Colors';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -151,9 +151,21 @@ export default function AdminAllergensScreen() {
       <Stack.Screen
         options={{
           title: 'Manage Allergens',
+          headerStyle: { backgroundColor: Colors.primary },
+          headerTintColor: '#fff',
+          headerTitleAlign: 'left',
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/settings')} 
+              style={{ marginRight: 4 }}
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <TouchableOpacity onPress={handleOpenAdd}>
-              <Plus size={24} color="#fff" style={{ marginRight: 16 }} />
+              <Plus size={24} color="#fff" style={{ marginRight: 10 }} />
             </TouchableOpacity>
           ),
         }}

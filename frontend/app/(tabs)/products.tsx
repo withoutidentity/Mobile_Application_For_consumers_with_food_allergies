@@ -10,8 +10,8 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { Plus, Edit2, Trash2, X } from 'lucide-react-native';
+import { Stack, router } from 'expo-router'; // 1. เพิ่ม router
+import { Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react-native'; // 2. เพิ่ม ArrowLeft
 import { Product } from '@/types';
 import Colors from '@/constants/Colors';
 
@@ -155,9 +155,21 @@ export default function AdminProductsScreen() {
       <Stack.Screen
         options={{
           title: 'Manage Products',
+          headerStyle: { backgroundColor: Colors.primary }, // สีพื้นหลังเขียว
+          headerTintColor: '#fff', // สีข้อความและไอคอน
+          headerTitleAlign: 'left', // <--- บรรทัดสำคัญ: จัด Title ให้ชิดซ้ายต่อจากปุ่ม Back
+          headerShadowVisible: false, // (ทางเลือก) ลบเงาใต้ Header เพื่อให้ดูแบนราบเหมือนในรูป
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/settings')} // <--- แก้ไขจุดนี้
+              style={{ marginRight: 4 }} // ปรับระยะห่างระหว่างลูกศรกับข้อความตรงนี้
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <TouchableOpacity onPress={handleOpenAdd}>
-              <Plus size={24} color="#fff" style={{ marginRight: 16 }}/>
+              <Plus size={24} color="#fff" style={{ marginRight: 10 }}/>
             </TouchableOpacity>
           ),
         }}
