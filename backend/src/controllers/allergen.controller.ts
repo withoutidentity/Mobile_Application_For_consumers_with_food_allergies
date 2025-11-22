@@ -29,71 +29,55 @@ export const getAllergenById = async (req: Request, res: Response) => {
   }
 };
 
-// POST /api/allergens - เพิ่มสารก่อภูมิแพ้ใหม่
-export const createAllergen = async (req: Request, res: Response) => {
-  try {
-    const { name, altNames, description, defaultLevel } = req.body
+// // POST /api/allergens - เพิ่มสารก่อภูมิแพ้ใหม่
+// export const createAllergen = async (req: Request, res: Response) => {
+//   try {
+//     const { name, altNames, description, severity } = req.body;
 
-    // Input validation
-    if (!name || !defaultLevel) {
-      return res.status(400).json({ message: 'Name and defaultLevel are required fields.' });
-    }
+//     const newAllergen = await prisma.allergen.create({
+//       data: {
+//         name,
+//         altNames,
+//         description,
+//         defaultLevel: severity.toUpperCase(), // เช่น 'HIGH'
+//       },
+//     });
 
-    const newAllergen = await prisma.allergen.create({
-      data: {
-        name,
-        description,
-        altNames,
-        defaultLevel: defaultLevel.toUpperCase(), // เช่น 'HIGH'
-      },
-    });
+//     res.status(201).json(newAllergen);
+//   } catch (error) {
+//     res.status(500).json({ message: 'Failed to create allergen', error });
+//   }
+// };
 
-    res.status(201).json(newAllergen);
-  } catch (error: any) {
-    console.error('Failed to create allergen:', error)
-    // Send a more informative error message
-    res.status(500).json({ message: 'Failed to create allergen', error: error.message })
-  }
-};
+// // PUT /api/allergens/:id - อัปเดตข้อมูลสารก่อภูมิแพ้
+// export const updateAllergen = async (req: Request, res: Response) => {
+//   try {
+//     const { name, altNames, description, severity } = req.body;
 
-// PUT /api/allergens/:id - อัปเดตข้อมูลสารก่อภูมิแพ้
-export const updateAllergen = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  try {
-    const { name, altNames, description, defaultLevel } = req.body;
+//     const updated = await prisma.allergen.update({
+//       where: { id: Number(req.params.id) },
+//       data: {
+//         name,
+//         altNames,
+//         description,
+//         defaultLevel: severity?.toUpperCase(),
+//       },
+//     });
 
-    const updated = await prisma.allergen.update({
-      where: { id },
-      data: {
-        name,
-        description,
-        altNames,
-        defaultLevel: defaultLevel?.toUpperCase(), // Make sure defaultLevel is not undefined
-      },
-    });
+//     res.json(updated);
+//   } catch (error) {
+//     res.status(500).json({ message: 'Failed to update allergen', error });
+//   }
+// };
 
-    res.json(updated);
-  } catch (error: any) {
-    console.error(`Failed to update allergen with id ${id}:`, error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: `Allergen with id ${id} not found.` });
-    }
-    res.status(500).json({ message: 'Failed to update allergen', error: error.message });
-  }
-};
-
-// DELETE /api/allergens/:id - ลบข้อมูลสารก่อภูมิแพ้
-export const deleteAllergen = async (req: Request, res: Response) => {
-  try {
-    await prisma.allergen.delete({
-      where: { id: Number(req.params.id) },
-    });
-    res.json({ message: 'Allergen deleted successfully' });
-  } catch (error: any) {
-    console.error(`Failed to delete allergen with id ${req.params.id}:`, error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ message: `Allergen with id ${req.params.id} not found.` });
-    }
-    res.status(500).json({ message: 'Failed to delete allergen', error: error.message });
-  }
-};
+// // DELETE /api/allergens/:id - ลบข้อมูลสารก่อภูมิแพ้
+// export const deleteAllergen = async (req: Request, res: Response) => {
+//   try {
+//     await prisma.allergen.delete({
+//       where: { id: Number(req.params.id) },
+//     });
+//     res.json({ message: 'Allergen deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Failed to delete allergen', error });
+//   }
+// };
