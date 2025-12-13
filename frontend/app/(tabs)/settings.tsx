@@ -4,20 +4,23 @@ import { useRouter } from "expo-router";
 import { 
   Bell, 
   HelpCircle, 
-  Moon, 
-  Trash2, 
+  // Moon, // ไม่ได้ใช้ Moon ในโค้ดตัวอย่างนี้ (คอมเมนต์ไว้ก่อนได้)
+  // Trash2, 
   User, 
   ShieldCheck, 
-  Package,       // เพิ่มไอคอนสินค้า
-  AlertTriangle  // เพิ่มไอคอนแจ้งเตือน
+  Package,       
+  AlertTriangle  
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { removeToken } = useAuth();
+  
+  // 1. ดึง user ออกมาด้วย (เพิ่ม { user, ... })
+  const { removeToken, user } = useAuth(); 
+  
   const { profile, saveProfile } = useUserProfile();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
@@ -119,33 +122,39 @@ export default function SettingsScreen() {
       </View>
 
       {/* --- NEW SECTION: Admin / ผู้ดูแลระบบ --- */}
-      <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-        <Text className="text-lg font-semibold text-[#333333] mb-4">
-          ผู้ดูแลระบบ
-        </Text>
-        
-        {/* Manage Products */}
-        <Pressable
-          className="flex-row items-center py-3 border-b border-[#E5E5E5]"
-          onPress={() => router.push("/allergens")}
-        >
-          <Package size={20} color="#333333" className="mr-3" />
-          <Text className="text-base text-[#333333]">
-            จัดการคลังสินค้า
-          </Text>
-        </Pressable>
+      {/* 2. ใส่เงื่อนไขตรงนี้ครับ ถ้าเป็น ADMIN ถึงจะแสดง */}
+      {user?.role === 'ADMIN' && (
+        <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
+            <Text className="text-lg font-semibold text-[#333333] mb-4">
+            ผู้ดูแลระบบ
+            </Text>
+            
+            {/* Manage Products */}
+            <Pressable
+            className="flex-row items-center py-3 border-b border-[#E5E5E5]"
+            // 3. แก้ path ให้ถูกต้อง (สินค้า -> products)
+            onPress={() => router.push("/products")} 
+            >
+            <Package size={20} color="#333333" className="mr-3" />
+            <Text className="text-base text-[#333333]">
+                จัดการคลังสินค้า
+            </Text>
+            </Pressable>
 
-        {/* Manage Allergens */}
-        <Pressable
-          className="flex-row items-center py-3"
-          onPress={() => router.push("/products")}
-        >
-          <AlertTriangle size={20} color="#333333" className="mr-3" />
-          <Text className="text-base text-[#333333]">
-            จัดการข้อมูลสารก่อภูมิแพ้
-          </Text>
-        </Pressable>
-      </View>
+            {/* Manage Allergens */}
+            <Pressable
+            className="flex-row items-center py-3"
+            // 3. แก้ path ให้ถูกต้อง (สารก่อภูมิแพ้ -> allergens)
+            onPress={() => router.push("/allergens")}
+            >
+            <AlertTriangle size={20} color="#333333" className="mr-3" />
+            <Text className="text-base text-[#333333]">
+                จัดการข้อมูลสารก่อภูมิแพ้
+            </Text>
+            </Pressable>
+        </View>
+      )}
+      {/* --- จบส่วน Admin --- */}
 
       {/* Logout */}
       <View className="mb-6">

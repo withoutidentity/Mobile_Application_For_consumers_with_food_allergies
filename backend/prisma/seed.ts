@@ -1,76 +1,51 @@
-/// <reference types="node" />
-import { PrismaClient, Severity } from '../src/generated/prisma';
+import { PrismaClient } from '../src/generated/prisma'
+import * as bcrypt from 'bcrypt' // <--- 1. เพิ่มการ import bcrypt
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log(`Start seeding ...`);
+  console.log('Start seeding...')
+  
+  // 2. สร้าง Hash ของรหัสผ่านเตรียมไว้
+  const hashedPassword = await bcrypt.hash('password123', 10);
 
-  // ข้อมูลที่คุณ Backup ไว้
-  const allergenData: { productId: number; allergenId: number; }[] = [
-    {
-      productId: 5,
-      allergenId: 1,
+  // 3. สร้าง/อัปเดต Admin
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: { 
+        password: hashedPassword, // <--- ถ้ามี User อยู่แล้ว ให้แก้รหัสใหม่ด้วย
+        role: 'ADMIN' 
     },
-    {
-      productId: 2,
-      allergenId: 1,
+    create: {
+      email: 'admin@example.com',
+      name: 'Super Admin',
+      password: hashedPassword, // <--- ใช้รหัสที่ Hash แล้ว
+      role: 'ADMIN',
     },
-    {
-      productId: 3,
-      allergenId: 1,
-    },
-    {
-      productId: 3,
-      allergenId: 3,
-    },
-    {
-      productId: 3,
-      allergenId: 4,
-    },
-    {
-      productId: 4,
-      allergenId: 1,
-    },
-    {
-      productId: 4,
-      allergenId: 3,
-    },
-    {
-      productId: 1,
-      allergenId: 1,
-    },
-    {
-      productId: 1,
-      allergenId: 2,
-    },
-    {
-      productId: 1,
-      allergenId: 3,
-    },
-    {
-      productId: 1,
-      allergenId: 4,
-    },
-    
-    // --- เพิ่มข้อมูลอื่นๆ ที่คุณมีที่นี่ ---
-  ];
+  })
 
-  for (const data of allergenData) {
-    const products = await prisma.productAllergen.create({
-      data: data,
-    });
-    console.log(`Created productAllergen with id: ${products.id}`);
-  }
+  // 4. สร้าง/อัปเดต User ธรรมดา
+  const user = await prisma.user.upsert({
+    where: { email: 'user@example.com' },
+    update: { 
+        password: hashedPassword,
+        role: 'USER' 
+    },
+    create: {
+      email: 'user@example.com',
+      name: 'Normal User',
+      password: hashedPassword, // <--- ใช้รหัสที่ Hash แล้ว
+      role: 'USER',
+    },
+  })
 
-  console.log(`Seeding finished.`);
+  console.log('Seeding finished.')
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
+  .then(async () => { await prisma.$disconnect() })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

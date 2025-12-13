@@ -1,6 +1,17 @@
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
-import { Dimensions, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, ActivityIndicator, View,} from "react-native";
+import { 
+  Dimensions, 
+  Image, 
+  KeyboardAvoidingView, 
+  Platform, 
+  Pressable, 
+  ScrollView, 
+  Text, 
+  TextInput, 
+  ActivityIndicator, 
+  View 
+} from "react-native";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginScreen() {
@@ -29,8 +40,11 @@ export default function LoginScreen() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
+      
       if (res.ok) {
-        await saveToken(data.accessToken); // await เพื่อให้แน่ใจว่า token ถูก set ก่อน AuthContext ทำงาน
+        // ✅ แก้ไขตรงนี้: ส่ง data.user ไปด้วย (ตามที่แก้ใน AuthContext)
+        await saveToken(data.accessToken, data.user); 
+        
         router.replace("/(tabs)");
       } else {
         setErrors({ general: data.message || "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
@@ -78,7 +92,7 @@ export default function LoginScreen() {
               setEmail(text);
               setErrors((prev) => ({ ...prev, email: "" }));
             }}
-            className="border border-border rounded-lg p-3 text-black" // color black ชัดเจน
+            className="border border-border rounded-lg p-3 text-black"
             keyboardType="email-address"
             autoCapitalize="none"
             placeholderTextColor="#999"
