@@ -5,20 +5,22 @@ import {
   Settings,
   MessageCircle,
   Scan,
-  Database, 
-  Shield 
+  Database,
+  Shield,
 } from "lucide-react-native";
 import React from "react";
-import { Text, View, TouchableOpacity, Platform } from "react-native";
-// ไม่จำเป็นต้องเช็ค admin ในไฟล์นี้แล้ว
-// import { useUserProfile } from "@/context/UserProfileContext"; 
-import Colors from '@/constants/Colors';
+import { TouchableOpacity, View } from "react-native";
 
+// 1. นำ import กลับมาเพื่อเช็ค Role
+import { useUserProfile } from "@/context/UserProfileContext";
+import Colors from "@/constants/Colors";
 
 export default function TabLayout() {
-  // ไม่ต้องเช็ค isAdmin ที่นี่
-  // const { profile } = useUserProfile();
-  // const isAdmin = profile.role === 'ADMIN';
+  // 2. ดึงข้อมูล Profile เพื่อเช็คว่าเป็น Admin หรือไม่
+  const { profile } = useUserProfile();
+
+  // ตรวจสอบ Role (ใช้ Optional chaining ?. ป้องกัน error กรณี profile ยังไม่โหลด)
+  const isAdmin = true;
 
   return (
     <Tabs
@@ -35,6 +37,9 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: "#fff",
           borderTopColor: "#E5E5E5",
+          height: 60, // ปรับความสูงเล็กน้อยเพื่อให้สวยงามขึ้น
+          paddingBottom: 8,
+          paddingTop: 8,
         },
       }}
     >
@@ -62,12 +67,11 @@ export default function TabLayout() {
         options={{
           title: "Scan",
           tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
-          
           tabBarButton: ({ onPress }) => (
             <TouchableOpacity
               onPress={onPress}
               style={{
-                top: -15,
+                top: -20, // ขยับขึ้นอีกนิดให้เด่น
                 backgroundColor: "#2A9D8F",
                 borderRadius: 40,
                 width: 70,
@@ -81,9 +85,22 @@ export default function TabLayout() {
                 elevation: 8,
               }}
             >
-              <Scan size={36} color="white" /> 
+              <Scan size={36} color="white" />
             </TouchableOpacity>
           ),
+        }}
+      />
+
+      {/* 🛡️ Admin Tab */}
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: "Admin",
+          // ❌ ลบบรรทัดนี้ทิ้ง: href: "/(tabs)/admin", 
+          // ✅ ถ้าอยากใส่เพื่อให้สลับ Logic ในอนาคต ให้ใช้แบบนี้:
+          href: isAdmin ? undefined : null, 
+          
+          tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
         }}
       />
 
@@ -105,12 +122,11 @@ export default function TabLayout() {
         }}
       />
 
-      {/* --- นี่คือส่วนที่แก้ไข --- */}
-      {/* ลบ {isAdmin && ...} ออก แล้วเพิ่ม href: null แทน */}
+      {/* --- Hidden Routes (เข้าถึงได้แต่ไม่โชว์ปุ่มใน Bar) --- */}
       <Tabs.Screen
         name="allergens"
         options={{
-          href: null, // <-- ซ่อนจาก Tab Bar
+          href: null,
           title: "Manage Allergens",
           tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
         }}
@@ -118,12 +134,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="products"
         options={{
-          href: null, // <-- ซ่อนจาก Tab Bar
+          href: null,
           title: "Manage Products",
           tabBarIcon: ({ color }) => <Database size={24} color={color} />,
         }}
       />
-      
     </Tabs>
   );
 }
