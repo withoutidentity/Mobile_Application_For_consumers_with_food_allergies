@@ -9,136 +9,132 @@ import {
   Shield,
 } from "lucide-react-native";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
-
-// 1. นำ import กลับมาเพื่อเช็ค Role
+import { TouchableOpacity } from "react-native";
 import { useUserProfile } from "@/context/UserProfileContext";
 import Colors from "@/constants/Colors";
 
 export default function TabLayout() {
-  // 2. ดึงข้อมูล Profile เพื่อเช็คว่าเป็น Admin หรือไม่
   const { profile } = useUserProfile();
-
-  // ตรวจสอบ Role (ใช้ Optional chaining ?. ป้องกัน error กรณี profile ยังไม่โหลด)
-  const isAdmin = true;
+  
+  // ✅ ตรวจสอบ Role: ADMIN
+  const isAdmin = profile?.role === 'ADMIN'; 
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
         headerShown: true,
-        headerStyle: {
-          backgroundColor: Colors.primary,
-        },
+        headerStyle: { backgroundColor: Colors.primary },
         headerTintColor: "#fff",
-        headerTitleStyle: {
-          fontWeight: "600",
-        },
-        tabBarStyle: {
-          backgroundColor: "#fff",
-          borderTopColor: "#E5E5E5",
-          height: 60, // ปรับความสูงเล็กน้อยเพื่อให้สวยงามขึ้น
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
+        tabBarStyle: { height: 60, paddingBottom: 8, paddingTop: 8 },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '500' }
       }}
     >
-      {/* 🏠 Home */}
+      {/* --------------------------------------------------------- */}
+      {/* 📦 ZONE ADMIN: แสดงเฉพาะ Admin                            */}
+      {/* --------------------------------------------------------- */}
+
+      <Tabs.Screen
+        name="products"
+        options={{
+          title: "Manage Products",
+          href: isAdmin ? undefined : null, 
+          tabBarIcon: ({ color }) => <Database size={24} color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="allergens"
+        options={{
+          title: "Manage Allergens",
+          href: isAdmin ? undefined : null,
+          tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+        }}
+      />
+
+      {/* --------------------------------------------------------- */}
+      {/* 🏠 ZONE USER: แสดงเฉพาะ User (Admin ไม่เห็น)              */}
+      {/* --------------------------------------------------------- */}
+
+      {/* 1. Home (ซ้ายสุด) */}
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
+          href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
 
-      {/* 💊 Symptoms */}
+      {/* 2. Symptoms (ย้ายมาไว้ตรงนี้ เพื่อดัน Scan ไปตรงกลาง) */}
       <Tabs.Screen
         name="guide"
         options={{
           title: "Symptoms",
+          href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <AlertCircle size={24} color={color} />,
         }}
       />
 
-      {/* 📷 Scan */}
+      {/* 3. Scan (อยู่ตรงกลางแล้ว เพราะเป็นลำดับที่ 3) */}
       <Tabs.Screen
         name="scanner"
         options={{
           title: "Scan",
+          href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
-          tabBarButton: ({ onPress }) => (
-            <TouchableOpacity
-              onPress={onPress}
-              style={{
-                top: -20, // ขยับขึ้นอีกนิดให้เด่น
-                backgroundColor: "#2A9D8F",
-                borderRadius: 40,
-                width: 70,
-                height: 70,
-                justifyContent: "center",
-                alignItems: "center",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 8,
-              }}
-            >
-              <Scan size={36} color="white" />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
-      {/* 🛡️ Admin Tab */}
-      <Tabs.Screen
-        name="admin"
-        options={{
-          title: "Admin",
-          // ❌ ลบบรรทัดนี้ทิ้ง: href: "/(tabs)/admin", 
-          // ✅ ถ้าอยากใส่เพื่อให้สลับ Logic ในอนาคต ให้ใช้แบบนี้:
-          href: isAdmin ? undefined : null, 
           
-          tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
+          tabBarButton: isAdmin 
+            ? undefined 
+            : (props) => (
+                <TouchableOpacity
+                  {...(props as any)} 
+                  style={{
+                    top: -20, // ดันปุ่มลอยขึ้นมา
+                    backgroundColor: "#2A9D8F",
+                    borderRadius: 40,
+                    width: 70,
+                    height: 70,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    elevation: 8,
+                  }}
+                >
+                  <Scan size={36} color="white" />
+                </TouchableOpacity>
+              ),
         }}
       />
 
-      {/* 💬 Chat */}
+      {/* 4. Chat (ขวา) */}
       <Tabs.Screen
         name="chat"
         options={{
           title: "Chat",
+          href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,
         }}
       />
 
-      {/* ⚙️ Settings */}
+      {/* --------------------------------------------------------- */}
+      {/* ⚙️ COMMON ZONE: เห็นทั้งคู่                                */}
+      {/* --------------------------------------------------------- */}
+      
+      {/* 5. Settings (ขวาสุด) */}
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
+          href: undefined, 
           tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
         }}
       />
 
-      {/* --- Hidden Routes (เข้าถึงได้แต่ไม่โชว์ปุ่มใน Bar) --- */}
-      <Tabs.Screen
-        name="allergens"
-        options={{
-          href: null,
-          title: "Manage Allergens",
-          tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="products"
-        options={{
-          href: null,
-          title: "Manage Products",
-          tabBarIcon: ({ color }) => <Database size={24} color={color} />,
-        }}
-      />
+      <Tabs.Screen name="admin" options={{ href: null }} />
+
     </Tabs>
   );
 }
