@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Modal,
@@ -10,8 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { Plus, Edit2, Trash2, X } from 'lucide-react-native';
+import { Stack, router } from 'expo-router';
+import { Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react-native';
 import { Allergen, Severity } from '@/types';
 import Colors from '@/constants/Colors';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -62,8 +61,8 @@ export default function AdminAllergensScreen() {
   };
 
   const handleSave = () => {
-    if (!formData.name.trim() || !formData.description.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields (Name and Description).');
+    if (!formData.name.trim()) {
+      Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
@@ -148,41 +147,57 @@ export default function AdminAllergensScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['bottom']}>
       <Stack.Screen
         options={{
           title: 'Manage Allergens',
+          headerStyle: { backgroundColor: Colors.primary },
+          headerTintColor: '#fff',
+          headerTitleAlign: 'left',
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/(tabs)/admin')} 
+              style={{ marginLeft: 5 }}
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <TouchableOpacity onPress={handleOpenAdd}>
-              <Plus size={24} color="#fff" style={{ marginRight: 16 }} />
+              <Plus size={24} color="#fff" style={{ marginRight: 10 }} />
             </TouchableOpacity>
           ),
         }}
       />
 
-      {isLoading && <Text style={styles.loadingText}>Loading allergens...</Text>}
-      {isError && <Text style={styles.loadingText}>Failed to load allergens.</Text>}
+      {isLoading && <Text className="text-center p-5 text-base text-gray-500">Loading allergens...</Text>}
+      {isError && <Text className="text-center p-5 text-base text-gray-500">Failed to load allergens.</Text>}
 
-      <ScrollView style={styles.list}>
+      <ScrollView className="flex-1 p-4">
         {allergens.map(allergen => (
-          <View key={allergen.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.nameContainer}>
-                <Text style={styles.name}>{allergen.name}</Text>
-                <View style={[styles.badge, { backgroundColor: getSeverityColor(allergen.defaultLevel) }]}>
-                  <Text style={styles.badgeText}>{allergen.defaultLevel}</Text>
+          <View key={allergen.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm shadow-black/10">
+            <View className="flex-row justify-between items-start mb-2">
+              <View className="flex-1 flex-row items-center gap-2">
+                <Text className="text-lg font-bold text-gray-900">{allergen.name}</Text>
+                <View 
+                  className="px-2 py-1 rounded-md"
+                  style={{ backgroundColor: getSeverityColor(allergen.defaultLevel) }}
+                >
+                  <Text className="text-[11px] font-semibold text-white uppercase">{allergen.defaultLevel}</Text>
                 </View>
               </View>
-              <View style={styles.actions}>
+              
+              <View className="flex-row gap-2">
                 <TouchableOpacity 
-                  style={styles.actionBtn}
+                  className="p-2"
                   onPress={() => handleOpenEdit(allergen)}
                   disabled={isMutating}
                 >
                   <Edit2 size={20} color={Colors.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={styles.actionBtn}
+                  className="p-2"
                   onPress={() => handleDeleteConfirm(allergen)}
                   disabled={isMutating}
                 >
@@ -193,8 +208,11 @@ export default function AdminAllergensScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-            <Text style={styles.description}>{allergen.description || 'No description'}</Text>
-            <Text style={styles.aliases}>
+            
+            <Text className="text-sm text-gray-500 mb-2 leading-5">
+              {allergen.description || 'No description'}
+            </Text>
+            <Text className="text-xs text-gray-400">
               Aliases: {allergen.altNames.join(', ') || 'None'}
             </Text>
           </View>
@@ -210,9 +228,9 @@ export default function AdminAllergensScreen() {
           resetForm();
         }}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+        <SafeAreaView className="flex-1 bg-white">
+          <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
+            <Text className="text-xl font-bold text-gray-900">
               {editingAllergen ? 'Edit Allergen' : 'Add Allergen'}
             </Text>
             <TouchableOpacity onPress={() => {
@@ -223,18 +241,19 @@ export default function AdminAllergensScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.form}>
-            <Text style={styles.label}>Name *</Text>
+          <ScrollView className="flex-1 p-4">
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Name *</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.name}
               onChangeText={(text) => setFormData({ ...formData, name: text })}
               placeholder="e.g., Peanuts"
             />
 
-            <Text style={styles.label}>Description *</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Description *</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200 min-h-[80px]"
+              textAlignVertical="top"
               value={formData.description}
               onChangeText={(text) => setFormData({ ...formData, description: text })}
               placeholder="Brief description"
@@ -242,47 +261,48 @@ export default function AdminAllergensScreen() {
               numberOfLines={3}
             />
 
-            <Text style={styles.label}>Aliases (comma-separated)</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Aliases (comma-separated)</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.altNames}
               onChangeText={(text) => setFormData({ ...formData, altNames: text })}
               placeholder="e.g., groundnuts, arachis oil"
             />
 
-            <Text style={styles.label}>Severity *</Text>
-            <View style={styles.severityButtons}>
-              {(['LOW', 'MEDIUM', 'HIGH'] as const).map(severity => (
-                <TouchableOpacity
-                  key={severity}
-                  style={[
-                    styles.severityBtn,
-                    formData.defaultLevel === severity && styles.severityBtnActive,
-                    { borderColor: getSeverityColor(severity) },
-                    formData.defaultLevel === severity && { backgroundColor: getSeverityColor(severity) },
-                  ]}
-                  onPress={() => setFormData({ ...formData, defaultLevel: severity })}
-                >
-                  <Text
-                    style={[
-                      styles.severityBtnText,
-                      formData.defaultLevel === severity && styles.severityBtnTextActive,
-                    ]}
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Severity *</Text>
+            <View className="flex-row gap-3">
+              {(['LOW', 'MEDIUM', 'HIGH'] as const).map(severity => {
+                const isActive = formData.defaultLevel === severity;
+                const color = getSeverityColor(severity);
+                return (
+                  <TouchableOpacity
+                    key={severity}
+                    className="flex-1 py-3 px-4 rounded-lg border-2 items-center"
+                    style={{ 
+                      borderColor: color,
+                      backgroundColor: isActive ? color : 'transparent'
+                    }}
+                    onPress={() => setFormData({ ...formData, defaultLevel: severity })}
                   >
-                    {severity}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      className={`text-sm font-semibold capitalize ${isActive ? 'text-white' : 'text-gray-500'}`}
+                    >
+                      {severity}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </ScrollView>
 
-          <View style={styles.modalFooter}>
+          <View className="p-4 border-t border-gray-200">
             <TouchableOpacity
-              style={styles.saveBtn}
+              className="rounded-lg py-3.5 items-center"
+              style={{ backgroundColor: Colors.primary }}
               onPress={handleSave}
               disabled={isMutating}
             >
-              <Text style={styles.saveBtnText}>
+              <Text className="text-base font-semibold text-white">
                 {isMutating ? 'Saving...' : (editingAllergen ? 'Update' : 'Add')}
               </Text>
             </TouchableOpacity>
@@ -292,156 +312,3 @@ export default function AdminAllergensScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  list: {
-    flex: 1,
-    padding: 16,
-  },
-  loadingText: {
-    textAlign: 'center',
-    padding: 20,
-    fontSize: 16,
-    color: '#666',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  nameContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#fff',
-    textTransform: 'uppercase',
-  },
-  description: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  aliases: {
-    fontSize: 12,
-    color: '#999',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionBtn: {
-    padding: 8,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  form: {
-    flex: 1,
-    padding: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 8,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  severityButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  severityBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    alignItems: 'center',
-  },
-  severityBtnActive: {
-    borderWidth: 2,
-  },
-  severityBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'capitalize',
-  },
-  severityBtnTextActive: {
-    color: '#fff',
-  },
-  modalFooter: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-  },
-  saveBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  saveBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});

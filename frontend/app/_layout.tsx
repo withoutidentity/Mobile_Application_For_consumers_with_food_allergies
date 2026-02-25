@@ -47,14 +47,23 @@ function RootLayoutNav() {
 
       // 2. จัดการผู้ใช้ที่ล็อกอินแล้ว
       if (inAuthGroup) {
-        // ถ้ามี token แต่ยังอยู่ในกลุ่ม (auth), ให้ไปหน้าหลัก
-        router.replace("/(tabs)");
+        // ถ้ามี token แต่ยังอยู่ในกลุ่ม (auth), ให้ไปหน้าหลักตาม role
+        
+        // เพิ่มเช็ค profile: ถ้ายังไม่มีข้อมูล user (เช่น กำลัง sync) ให้รอรอบถัดไป
+        if (!profile || !profile.role) return;
+
+        if (profile.role?.toUpperCase() === 'ADMIN') {
+          router.push('/(tabs)/admin');
+        } else {
+          // สำหรับ USER และ Role อื่นๆ ให้ไปหน้าหลัก
+          router.push('/(tabs)');
+        }
         return;
       }
 
       // 3. ตรวจสอบ Role สำหรับหน้าที่ต้องการป้องกัน
       const requiredRoles = protectedRoutes[currentRoute];
-      if (requiredRoles && !requiredRoles.includes(profile.role)) {
+      if (requiredRoles && !requiredRoles.includes(profile?.role?.toUpperCase())) {
         // ถ้าหน้านี้ต้องการ Role แต่ผู้ใช้ไม่มี Role ที่กำหนด
         // ให้ redirect ไปหน้า forbidden
         router.replace('/forbidden');
@@ -79,9 +88,7 @@ function RootLayoutNav() {
       },
     }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
       <Stack.Screen name="forbidden" options={{ title: "Forbidden" }} />
       <Stack.Screen name="symptom/[allergen]" options={{ title: "Symptoms" }} />
       <Stack.Screen name="product/[id]" options={{ title: "Product Details" }} />

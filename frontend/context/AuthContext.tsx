@@ -6,18 +6,23 @@ import React, {
   useEffect,
   useContext,
 } from "react";
+// ✅ แก้ path import ให้ถูกต้อง (ถ้า types อยู่นอก folder context 1 ชั้น)
+import { User } from "../types"; 
 
 const STORAGE_KEY = "auth_token";
+const USER_KEY = "auth_user_data";
 
 type AuthContextType = {
   token: string | null;
+  user: User | null;
   loading: boolean;
-  saveToken: (token: string) => Promise<void>;
+  saveToken: (token: string, userData: User) => Promise<void>;
   removeToken: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
+  user: null,
   loading: true,
   saveToken: async () => {},
   removeToken: async () => {},
@@ -25,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const segments = useSegments();
@@ -34,58 +40,66 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    console.log(`[AuthContext] useEffect triggered. Loading: ${loading}, Token: ${!!token}, Segments: ${segments.join('/')}`);
-    // รอให้การโหลด token ครั้งแรกเสร็จก่อน (loading === false)
-    if (loading) {
-      console.log("[AuthContext] Still loading, skipping redirect logic.");
-      return;
-    }
+    if (loading) return;
 
     const inTabsGroup = segments[0] === "(tabs)";
-    console.log(`[AuthContext] Is in (tabs) group? ${inTabsGroup}`);
+    const inAuthGroup = segments[0] === "(auth)";
 
-    // Redirect logic นี้จะทำงานเฉพาะตอนเปิดแอปครั้งแรก หรือตอน logout
-    // การ redirect ตอน login จะถูกจัดการใน saveToken()
-    if (token && !inTabsGroup) {
-      console.log("[AuthContext] Has token, but not in tabs group. Redirecting to /(tabs)...");
-      // router.replace("/(tabs)");
+    // Redirect logic
+    if (token && inAuthGroup) {
+      // router.replace("/(tabs)"); 
     } else if (!token && inTabsGroup) {
-      console.log("[AuthContext] No token, but in tabs group. Redirecting to /login...");
-      // ถ้าไม่มี token แต่อยู่ในหน้า (tabs), ให้ redirect ไป login
-      router.replace("/login");
+      // ✅ แก้ Path ตรงนี้: ตัด (auth) ออก และใช้ชื่อไฟล์ login
+      router.replace("/login"); 
     }
   }, [token, loading, segments, router]);
 
   const loadToken = async () => {
     try {
       const storedToken = await AsyncStorage.getItem(STORAGE_KEY);
-      if (storedToken) {
+      const storedUser = await AsyncStorage.getItem(USER_KEY);
+
+      if (storedToken && storedUser) {
         setToken(storedToken);
+        setUser(JSON.parse(storedUser));
       }
     } catch (error) {
-      console.error("Failed to load token:", error);
+      console.error("Failed to load auth data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveToken = async (newToken: string) => {
-    await AsyncStorage.setItem(STORAGE_KEY, newToken);
-    // อัปเดต state ก่อน
-    setToken(newToken);
-    // แล้วสั่ง redirect ไปหน้าหลักทันที
-    // router.replace("/(tabs)");
+  const saveToken = async (newToken: string, userData: User) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, newToken);
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
+      
+      setToken(newToken);
+      setUser(userData);
+      
+    } catch (error) {
+      console.error("Failed to save auth data:", error);
+    }
   };
 
   const removeToken = async () => {
-    await AsyncStorage.removeItem(STORAGE_KEY);
-    setToken(null);
-    // เมื่อ logout ให้กลับไปหน้า login
-    router.replace("/login");
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      await AsyncStorage.removeItem(USER_KEY);
+      setToken(null);
+      setUser(null);
+      
+      // ✅ แก้ Path ตรงนี้เหมือนกัน
+      router.replace("/login"); 
+    } catch (error) {
+      console.error("Failed to remove auth data:", error);
+    }
   };
 
   const authContextValue = {
     token,
+    user,
     loading,
     saveToken,
     removeToken,

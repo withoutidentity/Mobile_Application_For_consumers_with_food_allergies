@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Modal,
@@ -11,8 +10,8 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { Plus, Edit2, Trash2, X } from 'lucide-react-native';
+import { Stack, router } from 'expo-router'; // 1. เพิ่ม router
+import { Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react-native'; // 2. เพิ่ม ArrowLeft
 import { Product } from '@/types';
 import Colors from '@/constants/Colors';
 
@@ -152,46 +151,61 @@ export default function AdminProductsScreen() {
   // --- End React Query ---
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["bottom"]}>
       <Stack.Screen
         options={{
           title: 'Manage Products',
+          headerStyle: { backgroundColor: Colors.primary }, // สีพื้นหลังเขียว
+          headerTintColor: '#fff', // สีข้อความและไอคอน
+          headerTitleAlign: 'left', // <--- บรรทัดสำคัญ: จัด Title ให้ชิดซ้ายต่อจากปุ่ม Back
+          headerShadowVisible: false, // (ทางเลือก) ลบเงาใต้ Header เพื่อให้ดูแบนราบเหมือนในรูป
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => router.push('/(tabs)/admin')} // <--- แก้ไขจุดนี้
+              style={{ marginLeft: 5 }} // ปรับระยะห่างระหว่างลูกศรกับข้อความตรงนี้
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <TouchableOpacity onPress={handleOpenAdd}>
-              <Plus size={24} color="#fff" style={{ marginRight: 16 }}/>
+              <Plus size={24} color="#fff" style={{ marginRight: 10 }}/>
             </TouchableOpacity>
           ),
         }}
       />
 
-      <ScrollView style={styles.list} >
+      <ScrollView className="flex-1 p-4">
         {products.map(product => (
-          <View key={product.id} style={styles.card}>
-            <View style={styles.cardContent}>
+          <View key={product.id} className="bg-white rounded-xl p-3 mb-3 shadow-sm shadow-black/10">
+            <View className="flex-row gap-3">
               {product.image ? (
-                <Image source={{ uri: product.image }} style={styles.productImage} />
+                <Image source={{ uri: product.image }} className="w-20 h-20 rounded-lg" />
               ) :  (
-                <View style={[styles.productImage, styles.imagePlaceholder]}>
-                  <Text style={styles.placeholderText}>No Image</Text>
+                <View className="w-20 h-20 rounded-lg bg-gray-200 justify-center items-center">
+                  <Text className="text-xs text-gray-400">No Image</Text>
                 </View>
               )}
-              <View style={styles.productInfo}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.nameContainer}>
-                    <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-                    <Text style={styles.brand}>{product.brand}</Text>
+              
+              <View className="flex-1">
+                <View className="flex-row justify-between items-start mb-1">
+                  <View className="flex-1 mr-2">
+                    <Text className="text-base font-bold text-gray-900 mb-0.5" numberOfLines={2}>
+                      {product.name}
+                    </Text>
+                    <Text className="text-sm text-gray-500">{product.brand}</Text>
                   </View>
 
-                  <View style={styles.actions}>
+                  <View className="flex-row gap-1">
                     <TouchableOpacity 
-                      style={styles.actionBtn}
+                      className="p-1"
                       onPress={() => handleOpenEdit(product)}
                       disabled={isMutating}
                     >
                       <Edit2 size={20} color={Colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity 
-                      style={styles.actionBtn}
+                      className="p-1"
                       onPress={() => handleDelete(product)}
                       disabled={isMutating}
                     >
@@ -199,11 +213,13 @@ export default function AdminProductsScreen() {
                     </TouchableOpacity >
                   </View>
                 </View>
-                <Text style={styles.barcode}>Barcode: {product.barcode}</Text>
-                <View style={styles.allergensContainer}>
+
+                <Text className="text-xs text-gray-400 mb-2">Barcode: {product.barcode}</Text>
+                
+                <View className="flex-row flex-wrap gap-1.5">
                   {product.allergenWarnings.map((allergen, idx) => (
-                    <View key={idx} style={styles.allergenTag}>
-                      <Text style={styles.allergenTagText}>{allergen}</Text>
+                    <View key={idx} className="bg-red-50 px-2 py-1 rounded-md">
+                      <Text className="text-[11px] font-semibold text-red-500">{allergen}</Text>
                     </View>
                   ))}
                 </View>
@@ -222,9 +238,9 @@ export default function AdminProductsScreen() {
           resetForm();
         }}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+        <SafeAreaView className="flex-1 bg-white">
+          <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
+            <Text className="text-xl font-bold text-gray-900">
               {editingProduct ? 'Edit Product' : 'Add Product'}
             </Text>
             <TouchableOpacity onPress={() => {
@@ -235,35 +251,36 @@ export default function AdminProductsScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.form}>
-            <Text style={styles.label}>Product Name</Text>
+          <ScrollView className="flex-1 p-4">
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Product Name</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.name}
               onChangeText={(text) => setFormData({ ...formData, name: text })}
               placeholder="e.g., Chocolate Chip Cookies"
             />
 
-            <Text style={styles.label}>Brand</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Brand</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.brand}
               onChangeText={(text) => setFormData({ ...formData, brand: text })}
               placeholder="e.g., Sweet Treats"
             />
 
-            <Text style={styles.label}>Barcode</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Barcode</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.barcode}
               onChangeText={(text) => setFormData({ ...formData, barcode: text })}
               placeholder="e.g., 1234567890123"
               keyboardType="numeric"
             />
 
-            <Text style={styles.label}>Ingredients (one per line)</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Ingredients (one per line)</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200 min-h-[120px]"
+              textAlignVertical="top"
               value={formData.ingredients}
               onChangeText={(text) => setFormData({ ...formData, ingredients: text })}
               placeholder="Wheat flour&#10;Sugar&#10;Butter"
@@ -271,17 +288,17 @@ export default function AdminProductsScreen() {
               numberOfLines={6}
             />
 
-            <Text style={styles.label}>Allergen Warnings (comma separated)</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Allergen Warnings (comma separated)</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.allergenWarnings}
               onChangeText={(text) => setFormData({ ...formData, allergenWarnings: text })}
               placeholder="e.g., wheat, milk, eggs"
             />
 
-            <Text style={styles.label}>Image URL</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Image URL</Text>
             <TextInput
-              style={styles.input}
+              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.image}
               onChangeText={(text) => setFormData({ ...formData, image: text })}
               placeholder="https://..."
@@ -290,19 +307,20 @@ export default function AdminProductsScreen() {
             {formData.image ? (
               <Image 
                 source={{ uri: formData.image }} 
-                style={styles.imagePreview}
+                className="w-full h-52 rounded-lg mt-3"
                 resizeMode="cover"
               />
             ) : null}
           </ScrollView>
 
-          <View style={styles.modalFooter}>
+          <View className="p-4 border-t border-gray-200">
             <TouchableOpacity
-              style={styles.saveBtn}
+              className="rounded-lg py-3.5 items-center"
+              style={{ backgroundColor: Colors.primary }}
               disabled={isMutating}
               onPress={handleSave}
             >
-              <Text style={styles.saveBtnText}>
+              <Text className="text-base font-semibold text-white">
                 {isMutating ? 'Saving...' : (editingProduct ? 'Update' : 'Add')}
               </Text>
             </TouchableOpacity >
@@ -312,157 +330,3 @@ export default function AdminProductsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  list: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardContent: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  productImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  imagePlaceholder: {
-    backgroundColor: '#E5E5E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 12,
-    color: '#999',
-  },
-  productInfo: {
-    flex: 1,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  nameContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 2,
-  },
-  brand: {
-    fontSize: 14,
-    color: '#666',
-  },
-  barcode: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 8,
-  },
-  allergensContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  allergenTag: {
-    backgroundColor: '#FFE5E5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  allergenTagText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#E63946',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  actionBtn: {
-    padding: 4,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  form: {
-    flex: 1,
-    padding: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 8,
-    marginTop: 12,
-  },
-  input: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  textArea: {
-    minHeight: 120,
-    textAlignVertical: 'top',
-  },
-  imagePreview: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  modalFooter: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-  },
-  saveBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  saveBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-
-});

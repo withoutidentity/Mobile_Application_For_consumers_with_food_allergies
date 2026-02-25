@@ -1,3 +1,10 @@
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: 'ADMIN' | 'USER';
+}
+
 export interface Allergen {
   id: number;
   name: string;

@@ -66,7 +66,19 @@ export const login = async (req: Request, res: Response) => {
       data: { refreshToken },
     })
 
-    res.json({ accessToken, refreshToken })
+    // --- แก้ไขตรงนี้ครับ (เพิ่ม user object เข้าไป) ---
+    res.json({ 
+        accessToken, 
+        refreshToken,
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role, // <--- บรรทัดนี้สำคัญที่สุด! ส่ง role ไปให้หน้าบ้าน
+        }
+    })
+    // ----------------------------------------------
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Login failed' });
