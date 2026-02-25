@@ -56,6 +56,7 @@ export const getMyProfile = async (): Promise<UserProfile> => {
   return {
     name: user.name,
     role: user.role,
+    email: user.email,
     emergencyContact: user.emergencyContact || undefined,
     dietaryRestrictions: user.dietaryRestrictions,
     // เปลี่ยนการ map ข้อมูลให้ถูกต้อง

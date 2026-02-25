@@ -27,6 +27,7 @@ export interface UserProfile {
   name?: string;
   emergencyContact?: string;
   role: 'USER' | 'ADMIN';
+  email: string;
 }
 
 export interface Product {

@@ -21,7 +21,8 @@ export default function TabLayout() {
 
   // ✅ แก้ไข: ถ้ากำลังโหลด หรือ "มี Token แต่ Profile ยังไม่มา" ให้รอ (ห้ามเรนเดอร์ Tabs เด็ดขาด)
   // เพิ่มเช็ค !profile.role เพื่อป้องกันกรณี profile มาแล้วแต่ข้อมูลไม่ครบ
-  if (isLoading || authLoading || (token && (!profile || !profile.role))) {
+  // ✅ เพิ่มเช็ค !profile.email เพื่อดักจับ Default State ที่ role เป็น USER แต่ข้อมูลไม่ครบ
+  if (isLoading || authLoading || (token && (!profile || !profile.role || !profile.email))) {
     return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" color={Colors.primary} /></View>;
   }
   

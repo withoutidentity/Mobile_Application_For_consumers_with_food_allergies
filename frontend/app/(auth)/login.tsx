@@ -46,10 +46,12 @@ export default function LoginScreen() {
         await saveToken(data.accessToken, data.user); 
         
         // ✅ Redirect ทันทีโดยเช็ค Role จาก response (ไม่ต้องรอ Context update)
-        if (data.user.role?.toUpperCase() === "ADMIN") {
-          router.push("/(tabs)/admin");
+        const userRole = data.user.role?.toUpperCase();
+
+        if (userRole === "ADMIN") {
+          router.replace("/(tabs)/admin");
         } else {
-          router.push("/(tabs)");
+          router.replace("/(tabs)");
         }
       } else {
         setErrors({ general: data.message || "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });

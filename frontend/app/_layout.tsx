@@ -50,13 +50,16 @@ function RootLayoutNav() {
         // ถ้ามี token แต่ยังอยู่ในกลุ่ม (auth), ให้ไปหน้าหลักตาม role
         
         // เพิ่มเช็ค profile: ถ้ายังไม่มีข้อมูล user (เช่น กำลัง sync) ให้รอรอบถัดไป
-        if (!profile || !profile.role) return;
+        // ✅ แก้ไข: เช็ค email หรือ id ด้วย เพราะค่าเริ่มต้น (Default) อาจมี role='USER' แต่ไม่มีข้อมูลอื่น
+        if (!profile || !profile.role || !profile.email) {
+          return;
+        }
 
         if (profile.role?.toUpperCase() === 'ADMIN') {
-          router.push('/(tabs)/admin');
+          router.replace('/(tabs)/admin');
         } else {
           // สำหรับ USER และ Role อื่นๆ ให้ไปหน้าหลัก
-          router.push('/(tabs)');
+          router.replace('/(tabs)');
         }
         return;
       }
@@ -72,7 +75,9 @@ function RootLayoutNav() {
   }, [loading, profileLoading, token, profile, segments, router]);
 
   // ถ้ายัง loading auth หรือ profile, ให้แสดง Splash Screen ต่อไป
-  if (loading || profileLoading) {
+  // ✅ แก้ไข: รอแค่ Auth Loading ก็พอ ส่วน Profile ให้ไปรอในหน้าของมันเอง (TabLayout) 
+  // เพื่อป้องกัน App Unmount แล้ว Navigation State ที่จะไป /admin หายไป
+  if (loading) {
     return null;
   }
 
