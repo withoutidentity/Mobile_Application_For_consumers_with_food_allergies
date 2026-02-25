@@ -157,8 +157,8 @@ export default function AdminAllergensScreen() {
           headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity 
-              onPress={() => router.push('/settings')} 
-              style={{ marginRight: 4 }}
+              onPress={() => router.push('/(tabs)/admin')} 
+              style={{ marginLeft: 5 }}
             >
               <ArrowLeft size={24} color="#fff" />
             </TouchableOpacity>

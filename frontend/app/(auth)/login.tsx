@@ -45,7 +45,12 @@ export default function LoginScreen() {
         // ✅ แก้ไขตรงนี้: ส่ง data.user ไปด้วย (ตามที่แก้ใน AuthContext)
         await saveToken(data.accessToken, data.user); 
         
-        router.replace("/(tabs)");
+        // ✅ Redirect ทันทีโดยเช็ค Role จาก response (ไม่ต้องรอ Context update)
+        if (data.user.role?.toUpperCase() === "ADMIN") {
+          router.push("/(tabs)/admin");
+        } else {
+          router.push("/(tabs)");
+        }
       } else {
         setErrors({ general: data.message || "บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
       }

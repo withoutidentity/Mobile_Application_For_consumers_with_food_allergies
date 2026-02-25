@@ -161,8 +161,8 @@ export default function AdminProductsScreen() {
           headerShadowVisible: false, // (ทางเลือก) ลบเงาใต้ Header เพื่อให้ดูแบนราบเหมือนในรูป
           headerLeft: () => (
             <TouchableOpacity 
-              onPress={() => router.push('/settings')} // <--- แก้ไขจุดนี้
-              style={{ marginRight: 4 }} // ปรับระยะห่างระหว่างลูกศรกับข้อความตรงนี้
+              onPress={() => router.push('/(tabs)/admin')} // <--- แก้ไขจุดนี้
+              style={{ marginLeft: 5 }} // ปรับระยะห่างระหว่างลูกศรกับข้อความตรงนี้
             >
               <ArrowLeft size={24} color="#fff" />
             </TouchableOpacity>
