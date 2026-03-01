@@ -64,6 +64,16 @@ function RootLayoutNav() {
         return;
       }
 
+      // ✅ เพิ่มเติม: จัดการกรณีล็อกอินค้างไว้ (Persistent Login) โดยเฉพาะบน Android
+      // ถ้าเป็น ADMIN และระบบพามาที่หน้า Home (index) ให้ Redirect ไปหน้า Admin ทันที
+      if (token && profile?.role?.toUpperCase() === 'ADMIN') {
+        const inTabs = segments[0] === '(tabs)';
+        const isAtHome = inTabs && (segments.length === 1 || (segments[1] as string) === 'index');
+        if (isAtHome) {
+          router.replace('/(tabs)/admin');
+        }
+      }
+
       // 3. ตรวจสอบ Role สำหรับหน้าที่ต้องการป้องกัน
       const requiredRoles = protectedRoutes[currentRoute];
       if (requiredRoles && !requiredRoles.includes(profile?.role?.toUpperCase())) {
@@ -94,6 +104,7 @@ function RootLayoutNav() {
     }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
       <Stack.Screen name="forbidden" options={{ title: "Forbidden" }} />
       <Stack.Screen name="symptom/[allergen]" options={{ title: "Symptoms" }} />
       <Stack.Screen name="product/[id]" options={{ title: "Product Details" }} />

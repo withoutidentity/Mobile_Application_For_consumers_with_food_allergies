@@ -55,7 +55,7 @@ export default function AdminAllergensScreen() {
       name: allergen.name,
       description: allergen.description || '',
       altNames: allergen.altNames.join(', '),
-      defaultLevel: allergen.defaultLevel,
+      defaultLevel: (allergen.defaultLevel?.toUpperCase() || 'MEDIUM') as Severity,
     });
     setModalVisible(true);
   };
@@ -273,19 +273,45 @@ export default function AdminAllergensScreen() {
             <View className="flex-row gap-3">
               {(['LOW', 'MEDIUM', 'HIGH'] as const).map(severity => {
                 const isActive = formData.defaultLevel === severity;
-                const color = getSeverityColor(severity);
+                
+                // กำหนดสีและ style สำหรับแต่ละระดับ
+                const severityStyles = {
+                  LOW: {
+                    active: { bg: '#06D6A0', border: '#06D6A0', text: '#FFFFFF' },
+                    inactive: { bg: '#FFFFFF', border: '#D1D5DB', text: '#6B7280' }
+                  },
+                  MEDIUM: {
+                    active: { bg: '#F77F00', border: '#F77F00', text: '#FFFFFF' },
+                    inactive: { bg: '#FFFFFF', border: '#D1D5DB', text: '#6B7280' }
+                  },
+                  HIGH: {
+                    active: { bg: '#E63946', border: '#E63946', text: '#FFFFFF' },
+                    inactive: { bg: '#FFFFFF', border: '#D1D5DB', text: '#6B7280' }
+                  }
+                };
+                
+                const currentStyle = isActive ? severityStyles[severity].active : severityStyles[severity].inactive;
+                
                 return (
                   <TouchableOpacity
                     key={severity}
-                    className="flex-1 py-3 px-4 rounded-lg border-2 items-center"
-                    style={{ 
-                      borderColor: color,
-                      backgroundColor: isActive ? color : 'transparent'
+                    className="flex-1 py-3 px-4 rounded-lg items-center"
+                    style={{
+                      backgroundColor: currentStyle.bg,
+                      borderWidth: 2,
+                      borderColor: currentStyle.border,
+                      shadowColor: isActive ? currentStyle.border : '#000',
+                      shadowOffset: { width: 0, height: isActive ? 2 : 1 },
+                      shadowOpacity: isActive ? 0.25 : 0.1,
+                      shadowRadius: isActive ? 3.84 : 1,
+                      elevation: isActive ? 5 : 2,
                     }}
-                    onPress={() => setFormData({ ...formData, defaultLevel: severity })}
+                    onPress={() => setFormData(prev => ({ ...prev, defaultLevel: severity }))}
+                    activeOpacity={0.7}
                   >
                     <Text
-                      className={`text-sm font-semibold capitalize ${isActive ? 'text-white' : 'text-gray-500'}`}
+                      className="text-sm font-bold uppercase"
+                      style={{ color: currentStyle.text }}
                     >
                       {severity}
                     </Text>

@@ -45,16 +45,26 @@ export const fetchAllergens = async (): Promise<Allergen[]> => {
  * สร้างสารก่อภูมิแพ้ใหม่
  */
 export const createAllergen = async (allergenData: AllergenPayload): Promise<Allergen> => {
-  const response = await apiClient.post<Allergen>('/allergens', allergenData);
-  return response.data;
+  try {
+    const response = await apiClient.post<Allergen>('/allergens', allergenData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create allergen:', error);
+    throw error;
+  }
 };
 
 /**
  * อัปเดตข้อมูลสารก่อภูมิแพ้
  */
 export const updateAllergen = async (id: number, allergenData: AllergenPayload): Promise<Allergen> => {
-  const response = await apiClient.put<Allergen>(`/allergens/${id}`, allergenData);
-  return response.data;
+  try {
+    const response = await apiClient.put<Allergen>(`/allergens/${id}`, allergenData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update allergen:', error);
+    throw error;
+  }
 };
 
 /**

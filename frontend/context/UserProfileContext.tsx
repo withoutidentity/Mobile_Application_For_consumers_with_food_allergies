@@ -16,7 +16,7 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);
-  const { token, loading: authLoading } = useAuth();
+  const { token, loading: authLoading, removeToken } = useAuth();
 
   useEffect(() => {
     // 1. ถ้า auth loading เสร็จแล้ว และมี token (ผู้ใช้ล็อกอินอยู่)
@@ -36,10 +36,15 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
       setIsLoading(true);
       const apiProfile = await getMyProfile();
       setProfile(apiProfile);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load profile from API:', error);
       // หากดึงข้อมูลไม่สำเร็จ อาจจะ fallback ไปใช้ข้อมูลเก่า หรือเคลียร์โปรไฟล์
       // ในที่นี้เราจะปล่อยให้เป็น state ว่างเปล่าไปก่อน
+    if (error.response && error.response.status === 401) {
+      // ถ้า Token หมดอายุ (401) ให้ทำการ Logout หรือเคลียร์ Token
+      await removeToken();
+      // อาจจะ Redirect ไปหน้า Login
+    }
     } finally {
       setIsLoading(false);
     }

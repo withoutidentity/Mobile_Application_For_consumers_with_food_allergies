@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { Send } from "lucide-react-native";
 
 type Message = {
@@ -10,7 +18,11 @@ type Message = {
 
 export default function ChatBotScreen() {
   const [messages, setMessages] = useState<Message[]>([
-    { id: "1", text: "สวัสดีค่ะ! ฉันคือแชทบอท ช่วยเหลือคุณได้ค่ะ 😊", sender: "bot" },
+    {
+      id: "1",
+      text: "สวัสดีค่ะ! ฉันคือแชทบอท ช่วยเหลือคุณได้ค่ะ 😊",
+      sender: "bot",
+    },
   ]);
   const [input, setInput] = useState("");
 
@@ -23,13 +35,17 @@ export default function ChatBotScreen() {
       sender: "user",
     };
 
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [newMessage, ...prev]);
 
     // จำลองบอทตอบกลับ
     setTimeout(() => {
       setMessages((prev) => [
+        {
+          id: Date.now().toString(),
+          text: `คุณพิมพ์ว่า: ${input}`,
+          sender: "bot",
+        },
         ...prev,
-        { id: Date.now().toString(), text: `คุณพิมพ์ว่า: ${input}`, sender: "bot" },
       ]);
     }, 800);
 
@@ -53,7 +69,8 @@ export default function ChatBotScreen() {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       {/* Header */}
       {/* <View className="bg-teal-600 h-12 flex-row items-center px-4">
@@ -70,13 +87,17 @@ export default function ChatBotScreen() {
       />
 
       {/* Input */}
-      <View className="flex-row items-center border-t border-gray-300 px-3 py-2 bg-white">
-        <TextInput
-          className="flex-1 h-12 px-3 text-base text-gray-900 border border-gray-300 rounded-full mr-2"
-          placeholder="พิมพ์ข้อความ..."
-          value={input}
-          onChangeText={setInput}
-        />
+      <View className="flex-row items-center border-t border-gray-300 px-3 py-4 bg-white">
+        <View style={{ flex: 1, flexDirection: "row" }}>
+          <View style={{ flex: 1, flexDirection: "column-reverse" }}>
+            <TextInput
+              className="h-12 px-3 text-base text-gray-900 border border-gray-300 rounded-full mr-2"
+              placeholder="พิมพ์ข้อความ..."
+              value={input}
+              onChangeText={setInput}
+            />
+          </View>
+        </View>
         <TouchableOpacity
           onPress={handleSend}
           className="bg-teal-600 p-3 rounded-full"
