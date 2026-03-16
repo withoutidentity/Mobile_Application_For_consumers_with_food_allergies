@@ -7,8 +7,11 @@ import { errorHandler } from "./middlewares/errorHandler";
 import productRoutes from "./routes/product.routes";
 import allergenRoutes from './routes/allergen.routes';
 import userRoutes from './routes/user.routes';
+import chatRoutes from './routes/chat.routes';
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
+const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+dotenv.config({ path: envFile });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +32,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/allergens", allergenRoutes);
 // user routes
 app.use("/api/users", userRoutes);
+// chat routes
+app.use("/api/chat", chatRoutes);
 
 // ดักจับข้อผิดพลาดทั่วไป
 app.use(errorHandler);
