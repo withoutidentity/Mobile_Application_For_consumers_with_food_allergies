@@ -197,6 +197,33 @@ const buildConsultationPrompt = (message: string) => {
   ].join("\n");
 };
 
+const isListRequest = (message: string) => {
+  const patterns = [
+    /มีสินค้าไหนบ้าง/i,
+    /แนะนำสินค้า/i,
+    /กินอะไรได้/i,
+    /ทานอะไรได้/i,
+    /สินค้าไหนกินได้/i,
+  ];
+  return patterns.some((pattern) => pattern.test(message));
+};
+
+const buildConsultFallback = (message: string) => {
+  if (isListRequest(message)) {
+    return [
+      "ตอนนี้ยังไม่สามารถสรุปรายการสินค้าเฉพาะได้จากคำถามนี้",
+      "เพื่อช่วยคัดกรองให้แม่นยำขึ้น โปรดบอกประเภทสินค้า/แบรนด์/ร้านที่สนใจ หรือส่งชื่อสินค้าที่อยากตรวจสอบ",
+      "ถ้ามีบาร์โค้ดจะช่วยตรวจสอบได้เร็วที่สุด",
+      "ระหว่างนี้ฉันให้คำแนะนำทั่วไปเรื่องการหลีกเลี่ยงสารก่อภูมิแพ้ได้",
+    ].join("\n");
+  }
+
+  return [
+    "ถ้าต้องการให้ประเมิน โปรดส่งบาร์โค้ดหรือชื่อสินค้าให้ชัดเจน",
+    "ตอนนี้ฉันช่วยให้คำปรึกษาทั่วไปเกี่ยวกับการหลีกเลี่ยงสารก่อภูมิแพ้ได้",
+  ].join("\n");
+};
+
 const fetchProductFromDb = async (barcode: string): Promise<ProductLookup | null> => {
   const product = await prisma.product.findUnique({
     where: { barcode },
@@ -358,12 +385,7 @@ export const ChatService = {
     if (!product) {
       const consultPrompt = buildConsultationPrompt(message);
       const consultReply =
-        (await callGemini(consultPrompt)) ??
-        [
-          "ยังไม่พบข้อมูลสินค้าเพียงพอสำหรับประเมินความปลอดภัย",
-          "ถ้าต้องการให้ประเมิน โปรดส่งบาร์โค้ดหรือชื่อสินค้าให้ชัดเจน",
-          "ตอนนี้ฉันช่วยให้คำปรึกษาทั่วไปเกี่ยวกับการหลีกเลี่ยงสารก่อภูมิแพ้ได้",
-        ].join("\n");
+        (await callGemini(consultPrompt)) ?? buildConsultFallback(message);
 
       return {
         mode: "CONSULT",
