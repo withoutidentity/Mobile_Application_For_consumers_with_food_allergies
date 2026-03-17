@@ -241,7 +241,7 @@ export default function AdminProductsScreen() {
         <SafeAreaView className="flex-1 bg-white">
           <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
             <Text className="text-xl font-bold text-gray-900">
-              {editingProduct ? 'Edit Product' : 'Add Product'}
+              {editingProduct ? 'Edit Product' : 'เพิ่มผลิตภัณฑ์'}
             </Text>
             <TouchableOpacity onPress={() => {
               setModalVisible(false);
@@ -252,51 +252,51 @@ export default function AdminProductsScreen() {
           </View>
 
           <ScrollView className="flex-1 p-4">
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Product Name</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ชื่อผลิตภัณฑ์</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.name}
               onChangeText={(text) => setFormData({ ...formData, name: text })}
-              placeholder="e.g., Chocolate Chip Cookies"
+              placeholder="เช่น คุกกี้ช็อกโกแลตชิป"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Brand</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">แบรนด์/ยี่ห้อ</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.brand}
               onChangeText={(text) => setFormData({ ...formData, brand: text })}
-              placeholder="e.g., Sweet Treats"
+              placeholder="เช่น สวีททรีทส์"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Barcode</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">บาร์โค้ด</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.barcode}
               onChangeText={(text) => setFormData({ ...formData, barcode: text })}
-              placeholder="e.g., 1234567890123"
+              placeholder="เช่น 1234567890123"
               keyboardType="numeric"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Ingredients (one per line)</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ส่วนผสม (หนึ่งอย่างต่อบรรทัด)</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200 min-h-[120px]"
               textAlignVertical="top"
               value={formData.ingredients}
               onChangeText={(text) => setFormData({ ...formData, ingredients: text })}
-              placeholder="Wheat flour&#10;Sugar&#10;Butter"
+              placeholder="แป้งสาลี\น้ำตาล\เนย"
               multiline
               numberOfLines={6}
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Allergen Warnings (comma separated)</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">คำเตือนสารก่อภูมิแพ้</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.allergenWarnings}
               onChangeText={(text) => setFormData({ ...formData, allergenWarnings: text })}
-              placeholder="e.g., wheat, milk, eggs"
+              placeholder="เช่น แป้งสาลี, นม, ไข่"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Image URL</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">URL รูปภาพ</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.image}
@@ -321,7 +321,7 @@ export default function AdminProductsScreen() {
               onPress={handleSave}
             >
               <Text className="text-base font-semibold text-white">
-                {isMutating ? 'Saving...' : (editingProduct ? 'Update' : 'Add')}
+                {isMutating ? 'Saving...' : (editingProduct ? 'Update' : 'เพิ่ม')}
               </Text>
             </TouchableOpacity >
           </View>

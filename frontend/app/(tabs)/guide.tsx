@@ -16,10 +16,15 @@ export default function GuideScreen() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      const [allergensData, symptomsData] = await Promise.all([fetchAllergens(), fetchSymptoms()]);
-      setAllAllergens(allergensData);
-      setAllSymptoms(symptomsData);
-      setLoading(false);
+      try {
+        const [allergensData, symptomsData] = await Promise.all([fetchAllergens(), fetchSymptoms()]);
+        setAllAllergens(allergensData);
+        setAllSymptoms(symptomsData);
+      } catch (error) {
+        console.error("Error loading guide data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, []);
@@ -46,18 +51,32 @@ export default function GuideScreen() {
     }
   };
 
+  // เพิ่มฟังก์ชันสำหรับแปลระดับความรุนแรงเป็นภาษาไทย
+  const getSeverityLabel = (defaultLevel: string) => {
+    switch (defaultLevel) {
+      case 'HIGH':
+        return 'สูง';
+      case 'MEDIUM':
+        return 'ปานกลาง';
+      case 'LOW':
+        return 'ต่ำ';
+      default:
+        return defaultLevel;
+    }
+  };
+
   return (
     <ScrollView className="flex-1 bg-[#F8F9FA]" contentContainerStyle={{ padding: 16 }}>
       <View className="mb-6">
-        <Text className="text-2xl font-bold text-[#333333] mb-2">Allergy Symptoms</Text>
-        <Text className="text-base text-[#666666]">Learn about symptoms and first aid</Text>
+        <Text className="text-2xl font-bold text-[#333333] mb-2">อาการแพ้อาหาร</Text>
+        <Text className="text-base text-[#666666]">เรียนรู้อาการและการปฐมพยาบาลเบื้องต้น</Text>
       </View>
 
       <View className="flex-row items-center bg-white rounded-lg px-3 py-2 mb-4 border border-[#E5E5E5]">
         <Search size={20} color="#666666" className="mr-2" />
         <TextInput
           className="flex-1 h-12 text-base text-[#333333]"
-          placeholder="Search allergens..."
+          placeholder="ค้นหาสารก่อภูมิแพ้..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor="#666666"
@@ -67,14 +86,14 @@ export default function GuideScreen() {
       <View className="flex-row items-center bg-[#2A9D8F]/10 rounded-lg p-3 mb-4">
         <AlertCircle size={20} color="#2A9D8F" />
         <Text className="ml-2 text-[#333333] text-sm flex-1">
-          Tap on an allergen to view detailed symptoms and first aid information.
+          แตะที่ชื่อสารก่อภูมิแพ้เพื่อดูรายละเอียดอาการแพ้และวิธีปฐมพยาบาล
         </Text>
       </View>
 
       {loading && (
         <View className="flex-1 justify-center items-center p-10">
           <ActivityIndicator size="large" color="#2A9D8F" />
-          <Text className="mt-4 text-gray-500">Loading allergy information...</Text>
+          <Text className="mt-4 text-gray-500">กำลังโหลดข้อมูลสารก่อภูมิแพ้...</Text>
         </View>
       )}
 
@@ -100,7 +119,7 @@ export default function GuideScreen() {
                 <Text className="text-lg font-semibold text-[#333333] flex-1">{allergen.name}</Text>
                 <View className="px-2 py-1 rounded-full" style={{ backgroundColor: getSeverityColor(allergen.defaultLevel) }}>
                   <Text className="text-white text-xs font-semibold">
-                    {allergen.defaultLevel.charAt(0).toUpperCase() + allergen.defaultLevel.slice(1)}
+                    {getSeverityLabel(allergen.defaultLevel)}
                   </Text>
                 </View>
               </View>
@@ -110,7 +129,8 @@ export default function GuideScreen() {
               <View className="flex-row items-center">
                 <AlertCircle size={16} color="#666666" />
                 <Text className="ml-2 text-sm text-[#666666]">
-                  {symptomCount} {symptomCount === 1 ? 'symptom' : 'symptoms'}
+                  {/* แปลงจาก 1 symptom / 2 symptoms เป็นภาษาไทย */}
+                  {symptomCount} อาการ
                 </Text>
               </View>
             </Pressable>
@@ -119,7 +139,7 @@ export default function GuideScreen() {
         {!loading && filteredAllergens.length === 0 && (
           <View className="p-6 items-center">
             <Text className="text-base text-[#666666] text-center">
-              No allergens found matching "{searchQuery}"
+              ไม่พบสารก่อภูมิแพ้ที่ตรงกับ "{searchQuery}"
             </Text>
           </View>
         )}
