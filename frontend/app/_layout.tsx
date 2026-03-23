@@ -1,23 +1,23 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useMemo } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { UserProfileProvider, useUserProfile } from "@/context/UserProfileContext";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import React, { useEffect } from "react";
+
+import { AppProviders } from "@/components/AppProviders";
+import { useAuth } from "@/context/AuthContext";
+import { useUserProfile } from "@/context/UserProfileContext";
 import "./global.css";
 
-// ป้องกันไม่ให้ Splash Screen หายไปเอง
+// Keep the native splash screen visible until auth bootstrap finishes.
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
-
-// สร้าง Route Map เพื่อกำหนดสิทธิ์การเข้าถึง
-const protectedRoutes: Record<string, string[]> = {
-  // 'ชื่อโฟลเดอร์หรือไฟล์': ['ROLE_ที่เข้าได้']
-  'chat': ['USER'], // สมมติว่ามีหน้า /admin-dashboard
+const routeRoleRequirements: Record<string, string[]> = {
+  admin: ["ADMIN"],
+  products: ["ADMIN"],
+  allergens: ["ADMIN"],
+  index: ["USER"],
+  guide: ["USER"],
+  scanner: ["USER"],
+  chat: ["USER"],
 };
 
 function RootLayoutNav() {
@@ -27,121 +27,94 @@ function RootLayoutNav() {
   const segments = useSegments();
 
   useEffect(() => {
-    const isAuthLoading = loading || profileLoading;
+    const isBootstrapping = loading || profileLoading;
 
-    // ถ้าไม่ loading แล้ว (เช็ก auth และ profile เสร็จแล้ว)
-    if (!isAuthLoading) {
-      SplashScreen.hideAsync();
+    if (isBootstrapping) {
+      return;
+    }
 
-      const inAuthGroup = segments[0] === "(auth)";
-      const currentRoute = segments[segments.length - 1];
+    void SplashScreen.hideAsync();
 
-      // 1. จัดการผู้ใช้ที่ยังไม่ได้ล็อกอิน
-      if (!token) {
-        if (!inAuthGroup) {
-          // ถ้าไม่มี token และไม่ได้อยู่ในกลุ่ม (auth), ให้ไปหน้า login
-          router.replace("/login");
-        }
-        return; // หยุดการทำงานส่วนที่เหลือ
+    const inAuthGroup = segments[0] === "(auth)";
+    const currentRoute = segments[segments.length - 1];
+    const normalizedRole = profile?.role?.toUpperCase();
+
+    if (!token) {
+      if (!inAuthGroup) {
+        router.replace("/login");
       }
+      return;
+    }
 
-      // 2. จัดการผู้ใช้ที่ล็อกอินแล้ว
-      if (inAuthGroup) {
-        // ถ้ามี token แต่ยังอยู่ในกลุ่ม (auth), ให้ไปหน้าหลักตาม role
-        
-        // เพิ่มเช็ค profile: ถ้ายังไม่มีข้อมูล user (เช่น กำลัง sync) ให้รอรอบถัดไป
-        // ✅ แก้ไข: เช็ค email หรือ id ด้วย เพราะค่าเริ่มต้น (Default) อาจมี role='USER' แต่ไม่มีข้อมูลอื่น
-        if (!profile || !profile.role || !profile.email) {
-          return;
-        }
-
-        if (profile.role?.toUpperCase() === 'ADMIN') {
-          router.replace('/(tabs)/admin');
-        } else {
-          // สำหรับ USER และ Role อื่นๆ ให้ไปหน้าหลัก
-          router.replace('/(tabs)');
-        }
+    if (inAuthGroup) {
+      if (!profile || !profile.role || !profile.email) {
         return;
       }
 
-      // ✅ เพิ่มเติม: จัดการกรณีล็อกอินค้างไว้ (Persistent Login) โดยเฉพาะบน Android
-      // ถ้าเป็น ADMIN และระบบพามาที่หน้า Home (index) ให้ Redirect ไปหน้า Admin ทันที
-      if (token && profile?.role?.toUpperCase() === 'ADMIN') {
-        const inTabs = segments[0] === '(tabs)';
-        const isAtHome = inTabs && (segments.length === 1 || (segments[1] as string) === 'index');
-        if (isAtHome) {
-          router.replace('/(tabs)/admin');
-        }
+      if (normalizedRole === "ADMIN") {
+        router.replace("/(tabs)/admin");
+      } else {
+        router.replace("/(tabs)");
       }
+      return;
+    }
 
-      // 3. ตรวจสอบ Role สำหรับหน้าที่ต้องการป้องกัน
-      const requiredRoles = protectedRoutes[currentRoute];
-      if (requiredRoles && !requiredRoles.includes(profile?.role?.toUpperCase())) {
-        // ถ้าหน้านี้ต้องการ Role แต่ผู้ใช้ไม่มี Role ที่กำหนด
-        // ให้ redirect ไปหน้า forbidden
-        router.replace('/forbidden');
+    if (normalizedRole === "ADMIN") {
+      const inTabs = segments[0] === "(tabs)";
+      const isAtHome =
+        inTabs && (segments.length === 1 || (segments[1] as string) === "index");
+
+      if (isAtHome) {
+        router.replace("/(tabs)/admin");
+        return;
+      }
+    }
+
+    const requiredRoles = routeRoleRequirements[currentRoute];
+    if (requiredRoles && !normalizedRole) {
+      return;
+    }
+
+    if (requiredRoles && !requiredRoles.includes(normalizedRole!)) {
+      if (normalizedRole === "ADMIN") {
+        router.replace("/(tabs)/admin");
+      } else {
+        router.replace("/forbidden");
       }
     }
   }, [loading, profileLoading, token, profile, segments, router]);
 
-  // ถ้ายัง loading auth หรือ profile, ให้แสดง Splash Screen ต่อไป
-  // ✅ แก้ไข: รอแค่ Auth Loading ก็พอ ส่วน Profile ให้ไปรอในหน้าของมันเอง (TabLayout) 
-  // เพื่อป้องกัน App Unmount แล้ว Navigation State ที่จะไป /admin หายไป
   if (loading) {
     return null;
   }
 
   return (
-    <Stack screenOptions={{ 
-      headerBackTitle: "Back",
-      headerStyle: {
-        backgroundColor: "#2A9D8F",
-      },
-      headerTintColor: "#fff",
-      headerTitleStyle: {
-        fontWeight: "600",
-      },
-    }}>
+    <Stack
+      screenOptions={{
+        headerBackTitle: "Back",
+        headerStyle: {
+          backgroundColor: "#2A9D8F",
+        },
+        headerTintColor: "#fff",
+        headerTitleStyle: {
+          fontWeight: "600",
+        },
+      }}
+    >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
       <Stack.Screen name="forbidden" options={{ title: "Forbidden" }} />
       <Stack.Screen name="symptom/[allergen]" options={{ title: "Symptoms" }} />
       <Stack.Screen name="product/[id]" options={{ title: "Product Details" }} />
-   </Stack>
+    </Stack>
   );
 }
 
-// นี่คือ Default Export หลัก
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <UserProfileProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <StatusBar style="light" />
-            <RootLayoutNav />
-          </GestureHandlerRootView>
-        </UserProfileProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <AppProviders>
+      <RootLayoutNav />
+    </AppProviders>
   );
 }
-
-/**
- * หมายเหตุ:
- * 1. คุณต้องเพิ่ม field 'role' ใน UserProfile type และในข้อมูลที่ดึงมาจาก getMyProfile()
- *    เพื่อให้ `profile.role` สามารถใช้งานได้
- *
- * 2. ในไฟล์ `app/_layout.tsx` คุณต้องเพิ่มหน้าใหม่ๆ ที่สร้างนอกกลุ่ม (auth) และ (tabs)
- *    เข้าไปใน <Stack> ด้วย เช่น <Stack.Screen name="types" />
- *
- * 3. หากต้องการสร้างหน้า /types ให้สร้างไฟล์ `app/types.tsx`
- *    ตัวอย่าง:
- *    // app/types.tsx
- *    import { View, Text } from 'react-native';
- *    export default function TypesScreen() {
- *      return <View><Text>Types Management Page</Text></View>;
- *    }
- *
- */
