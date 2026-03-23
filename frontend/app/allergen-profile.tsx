@@ -92,7 +92,7 @@ export default function AllergenProfileScreen() {
       <ScrollView style={styles.contentContainer}>
         {/* Header text */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>สารก่อภูมิแพ้ของฉัน</Text>
+          <Text style={styles.title}>สารก่อภูมิแพ้ของฉันน</Text>
           <Text style={styles.subtitle}>จัดการโปรไฟล์สารก่อภูมิแพ้ของคุณ</Text>
         </View>
 
