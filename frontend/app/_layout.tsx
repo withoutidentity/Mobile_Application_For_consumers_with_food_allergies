@@ -1,6 +1,6 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { AppProviders } from "@/components/AppProviders";
 import { useAuth } from "@/context/AuthContext";
@@ -8,7 +8,9 @@ import { useUserProfile } from "@/context/UserProfileContext";
 import "./global.css";
 
 // Keep the native splash screen visible until auth bootstrap finishes.
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Expo Go can warn if splash handling has already been initialized.
+});
 
 const routeRoleRequirements: Record<string, string[]> = {
   admin: ["ADMIN"],
@@ -25,6 +27,7 @@ function RootLayoutNav() {
   const { profile, isLoading: profileLoading } = useUserProfile();
   const router = useRouter();
   const segments = useSegments();
+  const hasHiddenSplashRef = useRef(false);
 
   useEffect(() => {
     const isBootstrapping = loading || profileLoading;
@@ -33,7 +36,12 @@ function RootLayoutNav() {
       return;
     }
 
-    void SplashScreen.hideAsync();
+    if (!hasHiddenSplashRef.current) {
+      hasHiddenSplashRef.current = true;
+      void SplashScreen.hideAsync().catch(() => {
+        // Expo Go may not have a registered native splash on subsequent renders.
+      });
+    }
 
     const inAuthGroup = segments[0] === "(auth)";
     const currentRoute = segments[segments.length - 1];
@@ -84,7 +92,7 @@ function RootLayoutNav() {
     }
   }, [loading, profileLoading, token, profile, segments, router]);
 
-  if (loading) {
+  if (loading || profileLoading) {
     return null;
   }
 
