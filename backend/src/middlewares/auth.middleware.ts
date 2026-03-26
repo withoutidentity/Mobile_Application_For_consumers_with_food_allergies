@@ -1,14 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { PrismaClient } from '../generated/prisma';
+import { NextFunction, Request, Response } from "express";
+
+import { PrismaClient } from "../generated/prisma";
+import { verifyAccessToken } from "../utils/auth";
 
 const prisma = new PrismaClient();
 
-// สร้าง interface สำหรับ req.user เพื่อให้ TypeScript รู้จัก
 export interface AuthRequest extends Request {
   user?: {
     id: number;
-    // สามารถเพิ่ม properties อื่นๆ ของ user ที่ต้องการได้
   };
 }
 
@@ -19,22 +18,23 @@ export const authenticateToken = async (
 ) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Not authorized, no token" });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as { id: number };
+    const decoded = verifyAccessToken(token);
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
     if (!user) {
-      return res.status(401).json({ message: 'Not authorized, user not found' });
+      return res.status(401).json({ message: "Not authorized, user not found" });
     }
-    req.user = user; // กำหนด user object ทั้งหมดให้กับ request
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Not authorized, token failed' });
+
+    req.user = user;
+    return next();
+  } catch {
+    return res.status(401).json({ message: "Not authorized, token failed" });
   }
 };
