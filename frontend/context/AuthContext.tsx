@@ -1,13 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter, useSegments } from "expo-router";
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-} from "react";
-// ✅ แก้ path import ให้ถูกต้อง (ถ้า types อยู่นอก folder context 1 ชั้น)
-import { User } from "../types"; 
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+import { User } from "../types";
 
 const STORAGE_KEY = "auth_token";
 const USER_KEY = "auth_user_data";
@@ -32,27 +26,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const segments = useSegments();
 
   useEffect(() => {
-    loadToken();
+    void loadToken();
   }, []);
-
-  useEffect(() => {
-    if (loading) return;
-
-    const inTabsGroup = segments[0] === "(tabs)";
-    const inAuthGroup = segments[0] === "(auth)";
-
-    // Redirect logic
-    if (token && inAuthGroup) {
-      // router.replace("/(tabs)"); 
-    } else if (!token && inTabsGroup) {
-      // ✅ แก้ Path ตรงนี้: ตัด (auth) ออก และใช้ชื่อไฟล์ login
-      router.replace("/login"); 
-    }
-  }, [token, loading, segments, router]);
 
   const loadToken = async () => {
     try {
@@ -74,10 +51,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, newToken);
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
-      
+
       setToken(newToken);
       setUser(userData);
-      
     } catch (error) {
       console.error("Failed to save auth data:", error);
     }
@@ -89,24 +65,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await AsyncStorage.removeItem(USER_KEY);
       setToken(null);
       setUser(null);
-      
-      // ✅ แก้ Path ตรงนี้เหมือนกัน
-      router.replace("/login"); 
     } catch (error) {
       console.error("Failed to remove auth data:", error);
     }
   };
 
-  const authContextValue = {
-    token,
-    user,
-    loading,
-    saveToken,
-    removeToken,
-  };
-
   return (
-    <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        loading,
+        saveToken,
+        removeToken,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
 
