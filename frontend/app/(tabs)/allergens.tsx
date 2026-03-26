@@ -62,7 +62,7 @@ export default function AdminAllergensScreen() {
 
   const handleSave = () => {
     if (!formData.name.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert('ข้อผิดพลาด', 'กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน');
       return;
     }
 
@@ -82,12 +82,12 @@ export default function AdminAllergensScreen() {
 
   const handleDeleteConfirm = (allergen: Allergen) => {
     Alert.alert(
-      'Delete Allergen',
-      `Are you sure you want to delete "${allergen.name}"?`,
+      'ลบสารก่อภูมิแพ้',
+      `คุณแน่ใจหรือไม่ว่าต้องการลบ "${allergen.name}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'ยกเลิก', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'ลบ',
           style: 'destructive',
           onPress: () => deleteMutation.mutate(allergen.id),
         },
@@ -108,7 +108,7 @@ export default function AdminAllergensScreen() {
       resetForm();
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.message || 'An unexpected error occurred.');
+      Alert.alert('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดที่ไม่คาดคิด');
     },
   };
 
@@ -126,10 +126,10 @@ export default function AdminAllergensScreen() {
     mutationFn: deleteAllergen,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allergens'] });
-      Alert.alert('Success', 'Allergen deleted successfully.');
+      Alert.alert('สำเร็จ', 'ลบสารก่อภูมิแพ้เรียบร้อยแล้ว');
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.message || 'Failed to delete allergen.');
+      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถลบสารก่อภูมิแพ้ได้');
     },
   });
 
@@ -146,11 +146,21 @@ export default function AdminAllergensScreen() {
     }
   };
 
+  // แปลงระดับความรุนแรงเป็นภาษาไทยสำหรับแสดงผล
+  const getSeverityLabel = (severity: Severity) => {
+    switch (severity) {
+      case 'HIGH': return 'สูง (HIGH)';
+      case 'MEDIUM': return 'ปานกลาง (MEDIUM)';
+      case 'LOW': return 'ต่ำ (LOW)';
+      default: return severity;
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Manage Allergens',
+          title: 'จัดการสารก่อภูมิแพ้',
           headerStyle: { backgroundColor: Colors.primary },
           headerTintColor: '#fff',
           headerTitleAlign: 'left',
@@ -171,8 +181,8 @@ export default function AdminAllergensScreen() {
         }}
       />
 
-      {isLoading && <Text className="text-center p-5 text-base text-gray-500">Loading allergens...</Text>}
-      {isError && <Text className="text-center p-5 text-base text-gray-500">Failed to load allergens.</Text>}
+      {isLoading && <Text className="text-center p-5 text-base text-gray-500">กำลังโหลดข้อมูล...</Text>}
+      {isError && <Text className="text-center p-5 text-base text-gray-500">ไม่สามารถโหลดข้อมูลสารก่อภูมิแพ้ได้</Text>}
 
       <ScrollView className="flex-1 p-4">
         {allergens.map(allergen => (
@@ -184,7 +194,7 @@ export default function AdminAllergensScreen() {
                   className="px-2 py-1 rounded-md"
                   style={{ backgroundColor: getSeverityColor(allergen.defaultLevel) }}
                 >
-                  <Text className="text-[11px] font-semibold text-white uppercase">{allergen.defaultLevel}</Text>
+                  <Text className="text-[11px] font-semibold text-white uppercase">{getSeverityLabel(allergen.defaultLevel)}</Text>
                 </View>
               </View>
               
@@ -210,10 +220,10 @@ export default function AdminAllergensScreen() {
             </View>
             
             <Text className="text-sm text-gray-500 mb-2 leading-5">
-              {allergen.description || 'No description'}
+              {allergen.description || 'ไม่มีคำอธิบาย'}
             </Text>
             <Text className="text-xs text-gray-400">
-              Aliases: {allergen.altNames.join(', ') || 'None'}
+              ชื่อเรียกอื่น: {allergen.altNames.join(', ') || 'ไม่มี'}
             </Text>
           </View>
         ))}
@@ -231,7 +241,7 @@ export default function AdminAllergensScreen() {
         <SafeAreaView className="flex-1 bg-white">
           <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
             <Text className="text-xl font-bold text-gray-900">
-              {editingAllergen ? 'Edit Allergen' : 'Add Allergen'}
+              {editingAllergen ? 'แก้ไขสารก่อภูมิแพ้' : 'เพิ่มสารก่อภูมิแพ้'}
             </Text>
             <TouchableOpacity onPress={() => {
               setModalVisible(false);
@@ -242,39 +252,38 @@ export default function AdminAllergensScreen() {
           </View>
 
           <ScrollView className="flex-1 p-4">
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Name *</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ชื่อสารก่อภูมิแพ้ *</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.name}
               onChangeText={(text) => setFormData({ ...formData, name: text })}
-              placeholder="e.g., Peanuts"
+              placeholder="เช่น นมวัว, ถั่วลิสง"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Description *</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">รายละเอียด *</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200 min-h-[80px]"
               textAlignVertical="top"
               value={formData.description}
               onChangeText={(text) => setFormData({ ...formData, description: text })}
-              placeholder="Brief description"
+              placeholder="คำอธิบายแบบย่อ"
               multiline
               numberOfLines={3}
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Aliases (comma-separated)</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ชื่อเรียกอื่น (คั่นด้วยเครื่องหมายลูกน้ำ ,)</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.altNames}
               onChangeText={(text) => setFormData({ ...formData, altNames: text })}
-              placeholder="e.g., groundnuts, arachis oil"
+              placeholder="เช่น คาเซอีน, เวย์โปรตีน"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">Severity *</Text>
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ระดับความรุนแรงตั้งต้น *</Text>
             <View className="flex-row gap-3">
               {(['LOW', 'MEDIUM', 'HIGH'] as const).map(severity => {
                 const isActive = formData.defaultLevel === severity;
                 
-                // กำหนดสีและ style สำหรับแต่ละระดับ
                 const severityStyles = {
                   LOW: {
                     active: { bg: '#06D6A0', border: '#06D6A0', text: '#FFFFFF' },
@@ -295,7 +304,7 @@ export default function AdminAllergensScreen() {
                 return (
                   <TouchableOpacity
                     key={severity}
-                    className="flex-1 py-3 px-4 rounded-lg items-center"
+                    className="flex-1 py-3 px-2 rounded-lg items-center"
                     style={{
                       backgroundColor: currentStyle.bg,
                       borderWidth: 2,
@@ -310,10 +319,10 @@ export default function AdminAllergensScreen() {
                     activeOpacity={0.7}
                   >
                     <Text
-                      className="text-sm font-bold uppercase"
+                      className="text-xs font-bold uppercase text-center"
                       style={{ color: currentStyle.text }}
                     >
-                      {severity}
+                      {getSeverityLabel(severity)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -329,7 +338,7 @@ export default function AdminAllergensScreen() {
               disabled={isMutating}
             >
               <Text className="text-base font-semibold text-white">
-                {isMutating ? 'Saving...' : (editingAllergen ? 'Update' : 'Add')}
+                {isMutating ? 'กำลังบันทึก...' : (editingAllergen ? 'อัปเดตข้อมูล' : 'เพิ่มข้อมูล')}
               </Text>
             </TouchableOpacity>
           </View>
