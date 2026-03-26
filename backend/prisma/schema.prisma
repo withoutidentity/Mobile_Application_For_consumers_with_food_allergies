@@ -8,12 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ระดับความรุนแรงของอาการแพ้
 enum Severity {
   LOW
   MEDIUM
   HIGH
 }
 
+// บทบาทของผู้ใช้
 enum Role {
   USER
   ADMIN
@@ -36,10 +38,10 @@ model User {
   password            String
   name                String
   role                Role          @default(USER)
-  dietaryRestrictions String[]
+  dietaryRestrictions String[]      // เช่น มังสวิรัติ, คีโต, เจ
   emergencyContact    String?
-  allergies           UserAllergy[]
-  histories           ScanHistory[]
+  allergies           UserAllergy[]  // ความสัมพันธ์กับสารก่อภูมิแพ้
+  histories           ScanHistory[]  // ประวัติการสแกนสินค้า
   consentLogs         ConsentLog[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -51,11 +53,11 @@ model User {
 model Allergen {
   id          Int               @id @default(autoincrement())
   name        String
-  altNames    String[]
+  altNames    String[]          // ชื่ออื่นๆ เช่น Peanut, Gluten, Shrimp
   description String?
-  products    ProductAllergen[]
-  users       UserAllergy[]
-  symptoms    AllergenSymptom[]
+  products    ProductAllergen[] // ความสัมพันธ์กับสินค้า
+  users       UserAllergy[]     // ผู้ใช้ที่แพ้สารนี้
+  symptoms    AllergenSymptom[] // ความสัมพันธ์กับตารางอาการ
 
   @@map("allergens")
 }
@@ -65,9 +67,9 @@ model AllergenSymptom {
   allergenId     Int
   allergen       Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
   defaultLevel   Severity
-  symptoms       String[]
-  firstAid       String[]
-  whenToSeekHelp String[]
+  symptoms       String[]   // อาการเมื่อได้รับสารนี้ เช่น คัน ผื่น หายใจลำบาก
+  firstAid       String[]   // วิธีปฐมพยาบาลเบื้องต้น
+  whenToSeekHelp String[]   // เมื่อใดควรไปโรงพยาบาล
 
   @@unique([allergenId, defaultLevel])
   @@map("allergen_symptoms")
