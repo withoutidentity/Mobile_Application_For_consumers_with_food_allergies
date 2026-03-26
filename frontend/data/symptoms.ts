@@ -1,5 +1,6 @@
 import { AllergenSymptom } from '@/types';
 import axios from 'axios';
+import { allergenTranslations } from './allergens';
 
 const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
 
@@ -32,7 +33,7 @@ export const fetchSymptoms = async (): Promise<AllergenSymptom[]> => {
       .filter(allergen => allergen.symptoms) // กรองเอาเฉพาะรายการที่มีข้อมูล symptoms
       .map(allergen => ({
         allergenId: allergen.id, // ใช้ ID ที่เป็น number จาก API
-        allergenName: allergen.name,
+        allergenName: allergenTranslations[allergen.name.toLowerCase()] || allergen.name,
         symptoms: allergen.symptoms!.symptoms,
         firstAid: allergen.symptoms!.firstAid,
         whenToSeekHelp: allergen.symptoms!.whenToSeekHelp,

@@ -21,19 +21,31 @@ enum Role {
   ADMIN
 }
 
+enum ConsentType {
+  TOS
+  PRIVACY_POLICY
+  SENSITIVE_HEALTH_DATA
+}
+
+enum ConsentStatus {
+  GRANTED
+  WITHDRAWN
+}
+
 model User {
-  id                   Int             @id @default(autoincrement())
-  email                String          @unique
-  password             String
-  name                 String
-  role                 Role            @default(USER)
-  dietaryRestrictions  String[]        // เช่น มังสวิรัติ, คีโต, เจ
-  emergencyContact     String?
-  allergies            UserAllergy[]   // ความสัมพันธ์กับสารก่อภูมิแพ้
-  histories            ScanHistory[]   // ประวัติการสแกนสินค้า
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  refreshToken         String?
+  id                  Int           @id @default(autoincrement())
+  email               String        @unique
+  password            String
+  name                String
+  role                Role          @default(USER)
+  dietaryRestrictions String[]    // เช่น มังสวิรัติ, คีโต, เจ
+  emergencyContact    String?
+  allergies           UserAllergy[]   // ความสัมพันธ์กับสารก่อภูมิแพ้
+  histories           ScanHistory[]   // ประวัติการสแกนสินค้า
+  consentLogs         ConsentLog[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  refreshToken        String?
 
   @@map("users")
 }
@@ -79,34 +91,49 @@ model Product {
 }
 
 model ProductAllergen {
-  id              Int        @id @default(autoincrement())
-  productId       Int
-  allergenId      Int
-  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  allergen        Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  allergenId Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  allergen   Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
 
   @@map("product_allergens")
 }
 
 model UserAllergy {
-  id              Int        @id @default(autoincrement())
-  userId          Int
-  allergenId      Int
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  allergen        Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
-  severity        Severity   // ระดับความรุนแรงที่ผู้ใช้ระบุเอง (เฉพาะบุคคล)
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  allergenId Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allergen   Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  severity   Severity   // ระดับความรุนแรงที่ผู้ใช้ระบุเอง (เฉพาะบุคคล)
 
   @@unique([userId, allergenId])
   @@map("user_allergies")
 }
 
 model ScanHistory {
-  id              Int        @id @default(autoincrement())
-  userId          Int
-  productId       Int
-  scannedAt       DateTime   @default(now())
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  scannedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("scan_histories")
+}
+
+model ConsentLog {
+  id              Int           @id @default(autoincrement()) @map("log_id")
+  userId          Int           @map("user_id")
+  consentType     ConsentType   @map("consent_type")
+  consentStatus   ConsentStatus @map("consent_status")
+  documentVersion String        @map("document_version")
+  ipAddress       String?       @map("ip_address")
+  userAgent       String?       @map("user_agent")
+  actionTimestamp DateTime      @default(now()) @map("action_timestamp")
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, consentType, actionTimestamp])
+  @@map("consent_logs")
 }
