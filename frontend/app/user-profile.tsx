@@ -1,108 +1,115 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   StyleSheet,
-//   ScrollView,
-//   Alert, // เพิ่ม Alert
-// } from "react-native";
-// import { useUserProfile } from "@/context/UserProfileContext";
-// import Button from "@/components/Button";
-// // import { useRouter } from "expo-router"; // หากต้องการใช้ router.back()
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Alert,
+  Pressable,
+} from "react-native";
+import { useUserProfile } from "@/context/UserProfileContext";
+import Button from "@/components/Button";
+import { CheckSquare, Square, User, Phone } from "lucide-react-native"; // นำเข้า Icon มาใช้ตกแต่ง
 
-// export default function PersonalProfileScreen() {
-//   // const router = useRouter(); // หากต้องการใช้ router.back()
+export default function PersonalProfileScreen() {
+  const { profile, updateProfile } = useUserProfile(); 
   
-//   // 1. แก้ไข: เปลี่ยน setProfile เป็น updateProfile
-//   const { profile, updateProfile } = useUserProfile(); 
+  // ดึงข้อมูลเดิมจาก Context มาตั้งเป็นค่าเริ่มต้น (ถ้ามี)
+  const [name, setName] = useState(profile?.name || "");
+  const [emergencyContact, setEmergencyContact] = useState(profile?.emergencyContact || "");
+  
+  // สร้าง State สำหรับเก็บ Array ของข้อจำกัดการกิน
+  const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>(
+    profile?.dietaryRestrictions || []
+  );
 
-//   // 2. แก้ไข: ลบ email state ออก
-//   const [name, setName] = useState(profile.name || "");
+  // ตัวเลือกข้อจำกัดการกินทั้งหมด
+  const dietOptions = ["มังสวิรัติ (Vegetarian)", "ทานเจ (Vegan)", "คีโต (Keto)", "ฮาลาล (Halal)"];
 
-//   const handleSave = () => {
-//     // 3. แก้ไข: ลบการตรวจสอบ email ออก
-//     if (name.trim() === "") {
-//       Alert.alert("ข้อมูลไม่ครบ", "กรุณากรอกชื่อ-นามสกุลของคุณ");
-//       return;
-//     }
+  // ฟังก์ชันสำหรับกดติ๊กเลือก/เอาออก ข้อจำกัดการกิน
+  const toggleDiet = (option: string) => {
+    if (dietaryRestrictions.includes(option)) {
+      setDietaryRestrictions(dietaryRestrictions.filter((item) => item !== option));
+    } else {
+      setDietaryRestrictions([...dietaryRestrictions, option]);
+    }
+  };
 
-//     // 4. แก้ไข: เรียกใช้ updateProfile และส่งเฉพาะข้อมูลที่มีอยู่ (name)
-//     updateProfile({
-//       ...profile, // ส่งข้อมูล profile เดิมกลับไปด้วย
-//       name: name.trim(), // อัปเดตเฉพาะชื่อ
-//     });
+  const handleSave = () => {
+    if (name.trim() === "") {
+      Alert.alert("ข้อมูลไม่ครบ", "กรุณากรอกชื่อ-นามสกุลของคุณ");
+      return;
+    }
 
-//     Alert.alert("บันทึกข้อมูลแล้ว!");
+    // อัปเดตข้อมูลทั้งหมดกลับไปที่ Context (เตรียมส่งเข้า Database ต่อไป)
+    updateProfile({
+      ...profile, 
+      name: name.trim(),
+      emergencyContact: emergencyContact.trim(),
+      dietaryRestrictions: dietaryRestrictions,
+    });
 
-//     // (ทางเลือก) กลับไปหน้าก่อนหน้า
-//     // router.back();
-//   };
+    Alert.alert("สำเร็จ", "บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว!");
+  };
 
-//   return (
-//     <View style={styles.container}>
-//       <ScrollView style={styles.contentContainer}>
-//         <Text style={styles.title}>ประวัติส่วนตัว</Text>
-//         <Text style={styles.subtitle}>จัดการข้อมูลส่วนตัวของคุณ</Text>
+  return (
+    <View className="flex-1 bg-white">
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Text className="text-2xl font-bold text-gray-900 mb-2">
+          ประวัติส่วนตัว
+        </Text>
+        <Text className="text-base text-gray-500 mb-6">
+          จัดการข้อมูลพื้นฐานและการทานอาหารของคุณ
+        </Text>
 
-//         {/* ช่องกรอกชื่อ */}
-//         <View style={styles.inputGroup}>
-//           <Text style={styles.label}>ชื่อ-นามสกุล</Text>
-//           <TextInput
-//             style={styles.input}
-//             value={name}
-//             onChangeText={setName}
-//             placeholder="กรอกชื่อของคุณ"
-//             placeholderTextColor="#9CA3AF"
-//           />
-//         </View>
+        {/* 1. ช่องกรอกชื่อ */}
+        <View className="mb-5">
+          <Text className="text-base text-gray-700 font-medium mb-2">
+            ชื่อ-นามสกุล
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-lg px-3 bg-white h-12">
+            <User size={20} color="#9CA3AF" className="mr-2" />
+            <TextInput
+              className="flex-1 text-base text-gray-900"
+              value={name}
+              onChangeText={setName}
+              placeholder="กรอกชื่อของคุณ"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        </View>
 
-//         {/* 5. แก้ไข: ลบช่องกรอกอีเมลออกจาก JSX */}
+        {/* 2. ช่องกรอกเบอร์ฉุกเฉิน */}
+        <View className="mb-6">
+          <Text className="text-base text-gray-700 font-medium mb-2">
+            เบอร์ติดต่อฉุกเฉิน (ถ้ามี)
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-lg px-3 bg-white h-12">
+            <Phone size={20} color="#9CA3AF" className="mr-2" />
+            <TextInput
+              className="flex-1 text-base text-gray-900"
+              value={emergencyContact}
+              onChangeText={setEmergencyContact}
+              placeholder="เช่น 081-234-5678"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="phone-pad"
+            />
+          </View>
+          <Text className="text-xs text-gray-400 mt-1">
+            *เพื่อความปลอดภัย กรณีเกิดอาการแพ้รุนแรง (Anaphylaxis)
+          </Text>
+        </View>
 
-//         {/* ปุ่มบันทึก */}
-//         <Button
-//           title="บันทึกข้อมูล"
-//           onPress={handleSave}
-//           variant="primary"
-//           size="large"
-//         />
-//       </ScrollView>
-//     </View>
-//   );
-// }
-
-// // (Stylesheet เหมือนเดิม ไม่ต้องแก้)
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: "#ffffff" },
-//   contentContainer: { padding: 16 },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: "bold",
-//     color: "#111827",
-//     marginBottom: 8,
-//   },
-//   subtitle: {
-//     fontSize: 16,
-//     color: "#6B7280",
-//     marginBottom: 24,
-//   },
-//   inputGroup: {
-//     marginBottom: 16,
-//   },
-//   label: {
-//     fontSize: 16,
-//     color: "#374151",
-//     marginBottom: 8,
-//     fontWeight: "500",
-//   },
-//   input: {
-//     height: 48,
-//     borderWidth: 1,
-//     borderColor: "#D1D5DB",
-//     borderRadius: 8,
-//     paddingHorizontal: 12,
-//     fontSize: 16,
-//     backgroundColor: "#ffffff",
-//     color: "#111827",
-//   },
-// });
+        {/* ปุ่มบันทึก */}
+        <View className="mt-2 mb-10">
+          <Button
+            title="บันทึกข้อมูล"
+            onPress={handleSave}
+            variant="primary"
+            size="large"
+          />
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
