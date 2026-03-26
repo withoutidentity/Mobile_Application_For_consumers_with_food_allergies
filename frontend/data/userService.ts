@@ -45,7 +45,7 @@ type BackendUser = {
 type BackendProduct = Omit<Product, 'allergenWarnings' | 'id' | 'image'> & {
   id: number;
   imageUrl?: string;
-  allergens: { allergen: { altNames: string[] } }[];
+  allergens: { allergen: { name: string; altNames: string[] } }[];
 };
 
 export const getMyProfile = async (): Promise<UserProfile> => { 
@@ -94,9 +94,7 @@ export const getScanHistory = async (): Promise<Product[]> => {
 
     // 2. แปลงข้อมูล BackendProduct[] ให้เป็น Product[] (เหมือนใน productService.ts)
     const frontendProducts: Product[] = backendProducts.map((product) => {
-      const allergenWarnings = product.allergens.flatMap(
-        (pa) => pa.allergen.altNames
-      );
+      const allergenWarnings = product.allergens.map((pa) => pa.allergen.name);
 
       return {
         ...product,

@@ -2,19 +2,49 @@ import { PrismaClient } from '../generated/prisma';
 
 const prisma = new PrismaClient();
 
-// DTO สำหรับข้อมูล Product ที่รับมาจาก Frontend เพื่อสร้างหรืออัปเดต
 export type ProductCreateInput = {
   name: string;
-  brand?: string; // Brand เป็น optional ใน schema
+  brand?: string;
   barcode: string;
   ingredients: string[];
-  image?: string; // Frontend ส่งมาเป็น 'image'
-  allergenWarnings: string[]; // Frontend ส่งชื่อสารก่อภูมิแพ้มาเป็น array ของ string
+  image?: string;
+  allergenWarnings?: string[];
+  allergenWarningIds?: number[];
 };
 
-// สำหรับการอัปเดต เราจะใช้ Type เดียวกับตอนสร้าง แต่ทุกฟิลด์จะเป็น optional
 export type ProductUpdateInput = Partial<ProductCreateInput>;
 
+const resolveAllergenIds = async (data: ProductCreateInput | ProductUpdateInput) => {
+  if (Array.isArray(data.allergenWarningIds)) {
+    return Array.from(
+      new Set(
+        data.allergenWarningIds
+          .map((id) => Number(id))
+          .filter((id) => Number.isInteger(id) && id > 0),
+      ),
+    );
+  }
+
+  const allergenWarnings = Array.isArray(data.allergenWarnings)
+    ? data.allergenWarnings.map((item) => item.trim()).filter(Boolean)
+    : [];
+
+  if (!allergenWarnings.length) {
+    return [];
+  }
+
+  const allergens = await prisma.allergen.findMany({
+    where: {
+      OR: [
+        { name: { in: allergenWarnings, mode: 'insensitive' } },
+        { altNames: { hasSome: allergenWarnings } },
+      ],
+    },
+    select: { id: true },
+  });
+
+  return allergens.map((allergen) => allergen.id);
+};
 
 export const ProductService = {
   async getAll() {
@@ -46,32 +76,17 @@ export const ProductService = {
   },
 
   async create(data: ProductCreateInput) {
-    // แปลง 'image' ที่รับมาจาก Frontend เป็น 'imageUrl' สำหรับ Prisma
-    // และตรวจสอบให้แน่ใจว่าไม่มี id ปะปนเข้ามาในข้อมูลที่จะสร้าง
-    const { allergenWarnings, image: imageUrl, ...productData } = data as any;
-
-    // ค้นหา ID ของสารก่อภูมิแพ้จากชื่อหรือชื่ออื่น ๆ ที่ Frontend ส่งมา
-    const allergenIds = await prisma.allergen.findMany({
-      where: {
-        OR: [
-          { name: { in: allergenWarnings, mode: 'insensitive' } }, // ค้นหาจากชื่อหลัก
-          { altNames: { hasSome: allergenWarnings } }, // ค้นหาจากชื่ออื่น ๆ
-        ],
-      },
-      select: { id: true },
-    });
-
-    // สร้าง object สำหรับเชื่อมโยง Product กับ Allergen
-    const connectAllergens = allergenIds.map(allergen => ({
-      allergen: { connect: { id: allergen.id } },
-    }));
+    const { image: imageUrl, allergenWarnings, allergenWarningIds, ...productData } = data;
+    const resolvedAllergenIds = await resolveAllergenIds({ allergenWarnings, allergenWarningIds });
 
     return prisma.product.create({
-     data: {
+      data: {
         ...productData,
-        imageUrl, // ใช้ imageUrl ที่แปลงแล้ว
+        imageUrl,
         allergens: {
-          create: connectAllergens,
+          create: resolvedAllergenIds.map((allergenId) => ({
+            allergen: { connect: { id: allergenId } },
+          })),
         },
       },
       include: {
@@ -83,61 +98,55 @@ export const ProductService = {
       },
     });
   },
-  
-  async update(id: number, data: ProductUpdateInput) {
-    // แปลง 'image' ที่รับมาจาก Frontend เป็น 'imageUrl' สำหรับ Prisma
-    // และแยก barcode ออกไป เพราะเราไม่อนุญาตให้อัปเดต barcode
-    const { allergenWarnings, image: imageUrl, barcode, ...productData } = data;
 
-    // หากมีการส่ง allergenWarnings มา ให้ทำการอัปเดตความสัมพันธ์ของสารก่อภูมิแพ้
-    // เราจะตรวจสอบว่าเป็น array จริงๆ ไม่ใช่ undefined เพื่อป้องกันการลบโดยไม่จำเป็น
-    if (allergenWarnings !== undefined) {
-      // 1. ลบความสัมพันธ์ ProductAllergen เดิมทั้งหมดของ Product นี้
+  async update(id: number, data: ProductUpdateInput) {
+    const { image: imageUrl, barcode, allergenWarnings, allergenWarningIds, ...productData } = data;
+
+    if (allergenWarnings !== undefined || allergenWarningIds !== undefined) {
+      const resolvedAllergenIds = await resolveAllergenIds({ allergenWarnings, allergenWarningIds });
+
       await prisma.productAllergen.deleteMany({
         where: { productId: id },
       });
 
-      // 2. ค้นหา ID ของสารก่อภูมิแพ้ใหม่
-      const newAllergenIds = await prisma.allergen.findMany({
-        where: {
-          OR: [
-            { name: { in: allergenWarnings, mode: 'insensitive' } },
-            { altNames: { hasSome: allergenWarnings } },
-          ],
-        },
-        select: { id: true },
-      });
-
-      // 3. สร้างความสัมพันธ์ ProductAllergen ใหม่
-      const connectAllergens = newAllergenIds.map(allergen => ({
-        allergen: { connect: { id: allergen.id } },
-      }));
-
       return prisma.product.update({
         where: { id },
         data: {
           ...productData,
-          imageUrl, // ใช้ imageUrl ที่แปลงแล้ว
-          allergens: { create: connectAllergens },
+          imageUrl,
+          allergens: {
+            create: resolvedAllergenIds.map((allergenId) => ({
+              allergen: { connect: { id: allergenId } },
+            })),
+          },
         },
-        include: { allergens: { include: { allergen: true } } },
-      });
-    } else {
-      // หากไม่มีการส่ง allergenWarnings มา ให้อัปเดตเฉพาะข้อมูล Product หลัก
-      return prisma.product.update({
-        where: { id },
-        data: {
-          ...productData,
-          imageUrl, // ยังคงต้องอัปเดต imageUrl หากมีการส่งมา
+        include: {
+          allergens: {
+            include: {
+              allergen: true,
+            },
+          },
         },
-        include: { allergens: { include: { allergen: true } } }, // ยังคง include allergens เพื่อให้ return type เหมือนเดิม
       });
     }
+
+    return prisma.product.update({
+      where: { id },
+      data: {
+        ...productData,
+        imageUrl,
+      },
+      include: {
+        allergens: {
+          include: {
+            allergen: true,
+          },
+        },
+      },
+    });
   },
 
   async remove(id: number) {
-    // เนื่องจากมีการตั้งค่า onDelete: Cascade ใน Prisma schema สำหรับ ProductAllergen
-    // เมื่อ Product ถูกลบ ProductAllergen ที่เกี่ยวข้องจะถูกลบโดยอัตโนมัติ
     return prisma.product.delete({
       where: { id },
     });

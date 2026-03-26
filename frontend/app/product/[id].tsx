@@ -65,6 +65,9 @@ export default function ProductDetailScreen() {
   }
 
   const analysis = analyzeProduct(product, profile, allAllergens);
+
+  const normalizeText = (value: unknown) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : '';
   
   const getMatchedAllergenNames = () => {
     // analysis.directMatches is an array of Allergen objects
@@ -151,7 +154,10 @@ export default function ProductDetailScreen() {
           {product.allergenWarnings.length > 0 ? (
             product.allergenWarnings.map((warningName: string, index: number) => {
               // Find the allergen details from the full list by name
-              const allergen = allAllergens.find(a => a.name.toLowerCase() === warningName.toLowerCase()); // Find the allergen object from allAllergens
+              const normalizedWarning = normalizeText(warningName);
+              const allergen = allAllergens.find(
+                (a) => normalizeText(a.name) === normalizedWarning
+              );
               const isUserAllergen = allergen && profile.allergens ? profile.allergens.some(ua => ua.allergenId === allergen.id) : false; // Check if the user's profile contains this allergen by its ID
               
               return (
