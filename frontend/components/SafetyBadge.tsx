@@ -25,11 +25,11 @@ export default function SafetyBadge({ status, size = 'medium' }: SafetyBadgeProp
   const getStatusText = () => {
     switch (status) {
       case 'safe':
-        return 'Safe to Eat';
+        return 'ยังไม่พบความเสี่ยง';
       case 'caution':
-        return 'Use Caution';
+        return 'ควรระวัง';
       case 'unsafe':
-        return 'Not Safe';
+        return 'เสี่ยงต่อการแพ้';
       default:
         return '';
     }

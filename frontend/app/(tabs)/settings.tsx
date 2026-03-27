@@ -63,13 +63,15 @@ export default function SettingsScreen() {
             โปรไฟล์ประวัติส่วนตัว
           </Text>
         </Pressable>
-        <Pressable
-          className="flex-row items-center py-3"
-          onPress={() => router.push("/allergen-profile")}
-        >
-          <ShieldCheck size={20} color="#333333" className="mr-3" />
-          <Text className="text-base text-[#333333]">โปรไฟล์สารก่อภูมิแพ้</Text>
-        </Pressable>
+        {profile?.role !== 'ADMIN' && (
+          <Pressable
+            className="flex-row items-center py-3"
+            onPress={() => router.push("/allergen-profile")}
+          >
+            <ShieldCheck size={20} color="#333333" className="mr-3" />
+            <Text className="text-base text-[#333333]">โปรไฟล์สารก่อภูมิแพ้</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Notifications */}

@@ -1,5 +1,6 @@
 import Colors from '@/constants/Colors';
 import { Allergen, Severity } from '@/types';
+import { getAllergenDisplayName, getLocalizedAliasNames } from '@/utils/allergenLocalization';
 import { AlertCircle, Check } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -13,15 +14,16 @@ interface AllergenCardProps {
 }
 
 const severityOptions: { label: string; value: Severity }[] = [
-  { label: 'Low', value: 'LOW' },
-  { label: 'Medium', value: 'MEDIUM' },
-  { label: 'High', value: 'HIGH' },
+  { label: 'ต่ำ', value: 'LOW' },
+  { label: 'ปานกลาง', value: 'MEDIUM' },
+  { label: 'สูง', value: 'HIGH' },
 ];
 
 export default function AllergenCard({ allergen, selected, severity, onToggle, onSeverityChange }: AllergenCardProps) {
   const [isSeverityModalVisible, setIsSeverityModalVisible] = useState(false);
   const selectedSeverityLabel =
-    severityOptions.find((option) => option.value === severity)?.label ?? 'Medium';
+    severityOptions.find((option) => option.value === severity)?.label ?? 'ปานกลาง';
+  const localizedAliases = getLocalizedAliasNames(allergen);
 
   const handleSelectSeverity = (value: Severity) => {
     onSeverityChange(value);
@@ -37,7 +39,7 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
     >
       <Pressable onPress={onToggle} style={styles.cardPressable}>
         <View style={styles.header}>
-          <Text style={styles.name}>{allergen.name}</Text>
+          <Text style={styles.name}>{getAllergenDisplayName(allergen)}</Text>
           {/* <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(allergen.defaultLevel) }]}>
             <Text style={styles.severityText}>
               {allergen.defaultLevel.charAt(0).toUpperCase() + allergen.defaultLevel.slice(1)}
@@ -47,10 +49,10 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
         
         <Text style={styles.description}>{allergen.description}</Text>
         
-        {allergen.altNames.length > 0 && (
+        {localizedAliases.length > 0 && (
           <View style={styles.aliasesContainer}>
-            <Text style={styles.aliasesTitle}>Also known as:</Text>
-            <Text style={styles.aliases}>{allergen.altNames.join(', ')}</Text>
+            <Text style={styles.aliasesTitle}>ชื่อที่เกี่ยวข้อง:</Text>
+            <Text style={styles.aliases}>{localizedAliases.join(', ')}</Text>
           </View>
         )}
         
@@ -65,19 +67,19 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
             </View>
           )}
           <Text style={[styles.selectionText, selected && styles.selectedText]}>
-            {selected ? 'Added to your profile' : 'Tap to add to your profile'}
+            {selected ? 'เพิ่มในโปรไฟล์ของคุณแล้ว' : 'แตะเพื่อเพิ่มลงในโปรไฟล์ของคุณ'}
           </Text>
         </View>
       </Pressable>
 
       {selected && (
         <View style={styles.severitySelectorContainer}>
-          <Text style={styles.severitySelectorLabel}>My Severity:</Text>
+          <Text style={styles.severitySelectorLabel}>ระดับความรุนแรงของฉัน:</Text>
           <Pressable
             style={styles.severitySelectorButton}
-            onPress={() => setIsSeverityModalVisible(true)}
-          >
-            <Text style={styles.severitySelectorValue}>{selectedSeverityLabel}</Text>
+          onPress={() => setIsSeverityModalVisible(true)}
+        >
+          <Text style={styles.severitySelectorValue}>{selectedSeverityLabel}</Text>
           </Pressable>
         </View>
       )}
@@ -93,7 +95,7 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
           onPress={() => setIsSeverityModalVisible(false)}
         >
           <Pressable style={styles.modalCard} onPress={() => undefined}>
-            <Text style={styles.modalTitle}>Select severity</Text>
+            <Text style={styles.modalTitle}>เลือกระดับความรุนแรง</Text>
 
             {severityOptions.map((option) => {
               const isActive = severity === option.value;
@@ -124,7 +126,7 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
               style={styles.modalCancelButton}
               onPress={() => setIsSeverityModalVisible(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>ยกเลิก</Text>
             </Pressable>
           </Pressable>
         </Pressable>

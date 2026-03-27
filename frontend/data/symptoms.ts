@@ -1,6 +1,6 @@
 import { AllergenSymptom } from '@/types';
 import { fetchAllergens } from './allergenService';
-import { allergenTranslations } from './allergens';
+import { getAllergenDisplayName } from './allergens';
 
 let allergenSymptoms: AllergenSymptom[] = [];
 
@@ -10,7 +10,7 @@ export const fetchSymptoms = async (): Promise<AllergenSymptom[]> => {
     allergenSymptoms = allergens.flatMap((allergen) =>
       allergen.symptoms.map((symptom) => ({
         ...symptom,
-        allergenName: allergenTranslations[allergen.name.toLowerCase()] || allergen.name,
+        allergenName: getAllergenDisplayName(allergen),
       })),
     );
     return allergenSymptoms;

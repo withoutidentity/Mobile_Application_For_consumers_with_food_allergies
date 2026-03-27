@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Colors from '@/constants/Colors';
 import { Allergen, Severity } from '@/types';
 import { createAllergen, deleteAllergen, fetchAllergens, updateAllergen } from '@/data/allergenService';
+import { getAllergenDisplayName, getLocalizedAliasNames } from '@/utils/allergenLocalization';
 
 type SeverityForm = {
   symptoms: string;
@@ -245,7 +246,7 @@ export default function AdminAllergensScreen() {
           <View key={allergen.id} className="bg-white rounded-xl p-4 mb-3 shadow-sm shadow-black/10">
             <View className="flex-row justify-between items-start mb-2">
               <View className="flex-1">
-                <Text className="text-lg font-bold text-gray-900">{allergen.name}</Text>
+                <Text className="text-lg font-bold text-gray-900">{getAllergenDisplayName(allergen)}</Text>
                 <View className="flex-row flex-wrap gap-2 mt-2">
                   {severityOrder.map((severity) => {
                     const symptom = allergen.symptoms.find((item) => item.defaultLevel === severity);
@@ -289,7 +290,7 @@ export default function AdminAllergensScreen() {
               {allergen.description || 'ไม่มีคำอธิบาย'}
             </Text>
             <Text className="text-xs text-gray-400 mb-2">
-              ชื่อเรียกอื่น: {allergen.altNames.join(', ') || 'ไม่มี'}
+              ชื่อเรียกอื่น: {getLocalizedAliasNames(allergen).join(', ') || 'ไม่มี'}
             </Text>
             <Text className="text-xs text-gray-400">
               เมื่อใดควรไปโรงพยาบาล: {allergen.symptoms[0]?.whenToSeekHelp.length || 0} รายการ

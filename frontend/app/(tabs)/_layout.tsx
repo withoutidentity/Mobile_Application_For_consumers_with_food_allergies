@@ -48,7 +48,7 @@ export default function TabLayout() {
       <Tabs.Screen 
         name="admin" 
         options={{ 
-          title: "Admin", 
+          title: "ผู้ดูแล", 
           href: isAdmin ? undefined : null,
           tabBarIcon: ({ color }) => <UserRound size={24} color={color} />
         }}
@@ -57,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="products"
         options={{
-          title: "Manage Products",
+          title: "จัดการสินค้า",
           href: isAdmin ? undefined : null, 
           tabBarIcon: ({ color }) => <Database size={24} color={color} />,
         }}
@@ -66,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="allergens"
         options={{
-          title: "Manage Allergens",
+          title: "จัดการสารก่อภูมิแพ้",
           href: isAdmin ? undefined : null,
           tabBarIcon: ({ color }) => <Shield size={24} color={color} />,
         }}
@@ -80,7 +80,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "หน้าแรก",
           href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
@@ -90,7 +90,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="guide"
         options={{
-          title: "Symptoms",
+          title: "อาการแพ้",
           href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <AlertCircle size={24} color={color} />,
         }}
@@ -100,7 +100,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="scanner"
         options={{
-          title: "Scan",
+          title: "สแกน",
           href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <Scan size={30} color={color} />,
           
@@ -133,7 +133,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: "Chat",
+          title: "แชต",
           href: isAdmin ? null : undefined,
           tabBarIcon: ({ color }) => <MessageCircle size={24} color={color} />,
         }}
@@ -147,7 +147,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: "ตั้งค่า",
           href: undefined, 
           tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
         }}

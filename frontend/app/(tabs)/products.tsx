@@ -17,6 +17,7 @@ import Colors from '@/constants/Colors';
 import { Product } from '@/types';
 import { createProduct, deleteProduct, getProducts, updateProduct } from '@/data/productService';
 import { fetchAllergens } from '@/data/allergenService';
+import { getAllergenDisplayName, getLocalizedAliasNames } from '@/utils/allergenLocalization';
 
 type ProductFormData = {
   name: string;
@@ -76,7 +77,10 @@ export default function AdminProductsScreen() {
   const selectedAllergenNames = useMemo(
     () =>
       formData.allergenWarningIds
-        .map((id) => allergens.find((allergen) => allergen.id === id)?.name)
+        .map((id) => {
+          const allergen = allergens.find((item) => item.id === id);
+          return allergen ? getAllergenDisplayName(allergen) : undefined;
+        })
         .filter((value): value is string => Boolean(value)),
     [allergens, formData.allergenWarningIds],
   );
@@ -136,10 +140,10 @@ export default function AdminProductsScreen() {
   };
 
   const handleDelete = (product: Product) => {
-    Alert.alert('Delete Product', `Are you sure you want to delete "${product.name}"?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('ลบสินค้า', `คุณแน่ใจหรือไม่ว่าต้องการลบ "${product.name}"?`, [
+      { text: 'ยกเลิก', style: 'cancel' },
       {
-        text: 'Delete',
+        text: 'ลบ',
         style: 'destructive',
         onPress: () => deleteMutation.mutate(product.id),
       },
@@ -152,7 +156,7 @@ export default function AdminProductsScreen() {
       closeModal();
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.message || 'An unexpected error occurred.');
+      Alert.alert('เกิดข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดที่ไม่คาดคิด');
     },
   };
 
@@ -177,7 +181,7 @@ export default function AdminProductsScreen() {
     <SafeAreaView className="flex-1 bg-gray-50" edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Manage Products',
+          title: 'จัดการสินค้า',
           headerStyle: { backgroundColor: Colors.primary },
           headerTintColor: '#fff',
           headerTitleAlign: 'left',
@@ -203,7 +207,7 @@ export default function AdminProductsScreen() {
                 <Image source={{ uri: product.image }} className="w-20 h-20 rounded-lg" />
               ) : (
                 <View className="w-20 h-20 rounded-lg bg-gray-200 justify-center items-center">
-                  <Text className="text-xs text-gray-400">No Image</Text>
+                  <Text className="text-xs text-gray-400">ไม่มีรูป</Text>
                 </View>
               )}
 
@@ -226,12 +230,14 @@ export default function AdminProductsScreen() {
                   </View>
                 </View>
 
-                <Text className="text-xs text-gray-400 mb-2">Barcode: {product.barcode}</Text>
+                <Text className="text-xs text-gray-400 mb-2">บาร์โค้ด: {product.barcode}</Text>
 
                 <View className="flex-row flex-wrap gap-1.5">
                   {product.allergenWarnings.map((allergen, idx) => (
                     <View key={idx} className="bg-red-50 px-2 py-1 rounded-md">
-                      <Text className="text-[11px] font-semibold text-red-500">{allergen}</Text>
+                      <Text className="text-[11px] font-semibold text-red-500">
+                        {getAllergenDisplayName(allergen)}
+                      </Text>
                     </View>
                   ))}
                 </View>
@@ -250,7 +256,7 @@ export default function AdminProductsScreen() {
         <SafeAreaView className="flex-1 bg-white">
           <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
             <Text className="text-xl font-bold text-gray-900">
-              {editingProduct ? 'Edit Product' : 'เพิ่มผลิตภัณฑ์'}
+              {editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้า'}
             </Text>
             <TouchableOpacity onPress={closeModal}>
               <X size={24} color="#333" />
@@ -319,8 +325,10 @@ export default function AdminProductsScreen() {
                       onPress={() => toggleAllergen(allergen.id)}
                     >
                       <View className="flex-1 pr-3">
-                        <Text className="text-base text-gray-900">{allergen.name}</Text>
-                        <Text className="text-xs text-gray-400">{allergen.altNames.join(', ') || 'ไม่มีชื่ออื่น'}</Text>
+                        <Text className="text-base text-gray-900">{getAllergenDisplayName(allergen)}</Text>
+                        <Text className="text-xs text-gray-400">
+                          {getLocalizedAliasNames(allergen).join(', ') || 'ไม่มีชื่ออื่น'}
+                        </Text>
                       </View>
                       <View
                         className="w-6 h-6 rounded-md items-center justify-center border"
@@ -368,7 +376,7 @@ export default function AdminProductsScreen() {
               onPress={handleSave}
             >
               <Text className="text-base font-semibold text-white">
-                {isMutating ? 'Saving...' : editingProduct ? 'Update' : 'เพิ่ม'}
+                {isMutating ? 'กำลังบันทึก...' : editingProduct ? 'อัปเดต' : 'เพิ่ม'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -2,22 +2,24 @@ import Button from '@/components/Button';
 import SafetyBadge from '@/components/SafetyBadge';
 import Colors from '@/constants/Colors';
 import { useUserProfile } from '@/context/UserProfileContext';
+import { fetchAllergens } from '@/data/allergens';
 import getProducts from '@/data/productService';
 import { Allergen, Product } from '@/types';
+import {
+  getAllergenCanonicalKey,
+  getAllergenDisplayName,
+  normalizeAllergenTerm,
+  translateAllergenTermToThai,
+} from '@/utils/allergenLocalization';
 import { analyzeProduct } from '@/utils/productAnalyzer';
 import { useLocalSearchParams } from 'expo-router';
-import { AlertCircle, AlertTriangle, CheckCircle, Info, ArrowLeft } from 'lucide-react-native';
+import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { fetchAllergens } from '@/data/allergens';
-import { Alert, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import allergens from '@/data/allergens';
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function ProductDetailScreen() {
-  // useLocalSearchParams จะคืนค่าเป็น string เสมอ
   const { id: idFromParams } = useLocalSearchParams<{ id: string }>();
   const { profile } = useUserProfile();
-  
-  // กำหนด Type ให้ชัดเจน
   const [product, setProduct] = useState<Product | null>(null);
   const [allAllergens, setAllAllergens] = useState<Allergen[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,31 +27,27 @@ export default function ProductDetailScreen() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [products, fetchedAllergens] = await Promise.all([
-          getProducts(),
-          fetchAllergens(), // ดึงข้อมูล allergens ทั้งหมด
-        ]);
-
-        // แปลง id จาก URL (string) ให้เป็น number ก่อนเปรียบเทียบ
+        const [products, fetchedAllergens] = await Promise.all([getProducts(), fetchAllergens()]);
         const numericId = parseInt(idFromParams, 10);
-        // เปรียบเทียบ number กับ number (p.id เป็น number จาก service)
-        const foundProduct = products.find((p) => p.id === numericId);
-        setProduct(foundProduct ?? null);
+        const foundProduct = products.find((item) => item.id === numericId) ?? null;
+
+        setProduct(foundProduct);
         setAllAllergens(fetchedAllergens);
       } catch (error) {
-        console.error("Failed to fetch product:", error);
+        console.error('Failed to fetch product:', error);
         setProduct(null);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [idFromParams]);
 
   if (loading) {
     return (
       <View style={styles.notFound}>
-        <Text style={styles.notFoundTitle}>Loading...</Text>
+        <Text style={styles.notFoundTitle}>กำลังโหลดข้อมูลสินค้า...</Text>
       </View>
     );
   }
@@ -58,30 +56,21 @@ export default function ProductDetailScreen() {
     return (
       <View style={styles.notFound}>
         <AlertCircle size={64} color={Colors.unsafe} />
-        <Text style={styles.notFoundTitle}>Product Not Found</Text>
-        <Text style={styles.notFoundText}>We couldn't find this product in our database.</Text>
+        <Text style={styles.notFoundTitle}>ไม่พบสินค้า</Text>
+        <Text style={styles.notFoundText}>ไม่พบข้อมูลสินค้านี้ในฐานข้อมูล</Text>
       </View>
     );
   }
 
   const analysis = analyzeProduct(product, profile, allAllergens);
 
-  const normalizeText = (value: unknown) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : '';
-  
-  const getMatchedAllergenNames = () => {
-    // analysis.directMatches is an array of Allergen objects
-    return analysis.directMatches.map(allergen => {
-      return allergen.name;
-    });
-  };
+  const getMatchedAllergenNames = () =>
+    analysis.directMatches.map((allergen) => getAllergenDisplayName(allergen));
 
   const handleFindAlternatives = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Alternative product suggestions will be available in a future update.',
-      [{ text: 'OK' }]
-    );
+    Alert.alert('ยังไม่พร้อมใช้งาน', 'ระบบแนะนำสินค้าทางเลือกจะเปิดใช้งานในการอัปเดตถัดไป', [
+      { text: 'ตกลง' },
+    ]);
   };
 
   return (
@@ -93,116 +82,118 @@ export default function ProductDetailScreen() {
           <View style={styles.placeholderImage} />
         )}
       </View>
-      
+
       <View style={styles.productInfo}>
         <Text style={styles.brand}>{product.brand}</Text>
         <Text style={styles.name}>{product.name}</Text>
-        
+
         <View style={styles.safetyContainer}>
           <SafetyBadge status={analysis.safetyStatus} size="large" />
         </View>
-        
+
         {analysis.safetyStatus === 'unsafe' && (
           <View style={styles.warningCard}>
             <AlertCircle size={24} color="#fff" />
             <View style={styles.warningContent}>
-              <Text style={styles.warningTitle}>Contains Your Allergens</Text>
+              <Text style={styles.warningTitle}>เสี่ยงต่อการแพ้</Text>
               <Text style={styles.warningText}>
-                This product contains {getMatchedAllergenNames().join(', ')}, which you've listed as allergens.
+                สินค้านี้มีคำเตือนสารก่อภูมิแพ้ที่ตรงกับรายการที่คุณแพ้ ได้แก่{' '}
+                {getMatchedAllergenNames().join(', ')}
               </Text>
             </View>
           </View>
         )}
-        
+
         {analysis.safetyStatus === 'caution' && (
           <View style={styles.cautionCard}>
             <AlertTriangle size={24} color="#fff" />
             <View style={styles.warningContent}>
-              <Text style={styles.warningTitle}>May Contain Allergens</Text>
+              <Text style={styles.warningTitle}>ควรระวัง</Text>
               <Text style={styles.warningText}>
-                This product may contain ingredients related to your allergens. Please check the ingredient list carefully.
+                พบส่วนผสมที่อาจเกี่ยวข้องกับสารก่อภูมิแพ้ของคุณ กรุณาตรวจสอบฉลากสินค้าอย่างละเอียดอีกครั้ง
               </Text>
             </View>
           </View>
         )}
-        
+
         {analysis.safetyStatus === 'safe' && (
           <View style={styles.safeCard}>
             <CheckCircle size={24} color="#fff" />
             <View style={styles.warningContent}>
-              <Text style={styles.warningTitle}>Safe for You</Text>
+              <Text style={styles.warningTitle}>ยังไม่พบความเสี่ยง</Text>
               <Text style={styles.warningText}>
-                Based on your profile, this product doesn't contain any of your listed allergens.
+                จากข้อมูลที่มีอยู่ ยังไม่พบสารก่อภูมิแพ้ที่ตรงกับโปรไฟล์ของคุณ
               </Text>
             </View>
           </View>
         )}
       </View>
-      
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ingredients</Text>
+        <Text style={styles.sectionTitle}>ส่วนผสม</Text>
         <View style={styles.ingredientsList}>
           {product.ingredients.map((ingredient: string, index: number) => (
             <Text key={index} style={styles.ingredient}>• {ingredient}</Text>
           ))}
         </View>
       </View>
-      
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Allergen Warnings</Text>
+        <Text style={styles.sectionTitle}>คำเตือนสารก่อภูมิแพ้</Text>
         <View style={styles.allergenWarnings}>
           {product.allergenWarnings.length > 0 ? (
             product.allergenWarnings.map((warningName: string, index: number) => {
-              // Find the allergen details from the full list by name
-              const normalizedWarning = normalizeText(warningName);
-              const allergen = allAllergens.find(
-                (a) => normalizeText(a.name) === normalizedWarning
-              );
-              const isUserAllergen = allergen && profile.allergens ? profile.allergens.some(ua => ua.allergenId === allergen.id) : false; // Check if the user's profile contains this allergen by its ID
-              
+              const warningKey = getAllergenCanonicalKey(warningName);
+              const allergen =
+                allAllergens.find((item) => getAllergenCanonicalKey(item.name) === warningKey) ??
+                allAllergens.find((item) => normalizeAllergenTerm(item.name) === normalizeAllergenTerm(warningName));
+              const isUserAllergen =
+                Boolean(allergen) &&
+                Array.isArray(profile.allergens) &&
+                profile.allergens.some((item) => item.allergenId === allergen?.id);
+
               return (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.allergenWarning,
-                    isUserAllergen && styles.userAllergenWarning
-                  ]}
+                <View
+                  key={`${warningName}-${index}`}
+                  style={[styles.allergenWarning, isUserAllergen && styles.userAllergenWarning]}
                 >
                   {isUserAllergen ? (
                     <AlertCircle size={16} color={Colors.unsafe} />
                   ) : (
                     <Info size={16} color={Colors.textLight} />
                   )}
-                  <Text 
+                  <Text
                     style={[
                       styles.allergenWarningText,
-                      isUserAllergen && styles.userAllergenWarningText
+                      isUserAllergen && styles.userAllergenWarningText,
                     ]}
                   >
-                    {allergen ? allergen.name : warningName}
+                    {allergen
+                      ? getAllergenDisplayName(allergen)
+                      : translateAllergenTermToThai(warningName) ?? warningName}
                   </Text>
                 </View>
               );
             })
           ) : (
-            <Text style={styles.noAllergensText}>No allergen warnings listed for this product.</Text>
+            <Text style={styles.noAllergensText}>ไม่มีการระบุคำเตือนสารก่อภูมิแพ้สำหรับสินค้านี้</Text>
           )}
         </View>
       </View>
-      
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Product Information</Text>
+        <Text style={styles.sectionTitle}>ข้อมูลสินค้า</Text>
         <View style={styles.productDetails}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Barcode</Text>
+            <Text style={styles.detailLabel}>บาร์โค้ด</Text>
             <Text style={styles.detailValue}>{product.barcode}</Text>
           </View>
         </View>
       </View>
-      
+
       <View style={styles.actionButtons}>
         <Button
-          title="Find Alternatives"
+          title="ค้นหาสินค้าทางเลือก"
           onPress={handleFindAlternatives}
           variant="primary"
           fullWidth
@@ -253,16 +244,6 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     backgroundColor: '#e0e0e0',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    padding: 8,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   productInfo: {
     padding: 16,

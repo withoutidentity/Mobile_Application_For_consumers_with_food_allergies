@@ -2,7 +2,7 @@ import AllergenCard from "@/components/AllergenCard";
 import Button from "@/components/Button";
 import EmptyState from "@/components/EmptyState";
 import { useUserProfile } from "@/context/UserProfileContext"; 
-import { fetchAllergens } from "@/data/allergens";
+import { fetchAllergens, getAllergenSearchTerms } from "@/data/allergens";
 import { AlertCircle, Search, User } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -32,11 +32,7 @@ export default function AllergenProfileScreen() {
   }, []);
 
   const filteredAllergens = allAllergens.filter(
-    (allergen) =>
-      allergen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (allergen.altNames && allergen.altNames.some((alias) =>
-        alias.toLowerCase().includes(searchQuery.toLowerCase())
-      ))
+    (allergen) => getAllergenSearchTerms(allergen).some((term) => term.includes(searchQuery.toLowerCase()))
   );
 
   const handleToggleAllergen = (allergenId: number, isCurrentlySelected: boolean) => {

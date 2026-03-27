@@ -99,7 +99,7 @@ function RootLayoutNav() {
   return (
     <Stack
       screenOptions={{
-        headerBackTitle: "Back",
+        headerBackTitle: "กลับ",
         headerStyle: {
           backgroundColor: "#2A9D8F",
         },
@@ -112,9 +112,9 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
-      <Stack.Screen name="forbidden" options={{ title: "Forbidden" }} />
-      <Stack.Screen name="symptom/[allergen]" options={{ title: "Symptoms" }} />
-      <Stack.Screen name="product/[id]" options={{ title: "Product Details" }} />
+      <Stack.Screen name="forbidden" options={{ title: "ไม่มีสิทธิ์เข้าถึง" }} />
+      <Stack.Screen name="symptom/[allergen]" options={{ title: "รายละเอียดอาการแพ้" }} />
+      <Stack.Screen name="product/[id]" options={{ title: "รายละเอียดสินค้า" }} />
     </Stack>
   );
 }

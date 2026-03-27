@@ -12,11 +12,11 @@ export default function ForbiddenScreen() {
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <View style={styles.container}>
         <ShieldAlert size={64} color="#E74C3C" />
-        <Text style={styles.title}>Access Denied</Text>
+        <Text style={styles.title}>ไม่มีสิทธิ์เข้าถึง</Text>
         <Text style={styles.message}>
-          You do not have permission to view this page.
+          คุณไม่มีสิทธิ์ดูหน้านี้
         </Text>
-        <Button title="Go to Home" onPress={() => router.replace("/(tabs)")} />
+        <Button title="กลับหน้าหลัก" onPress={() => router.replace("/(tabs)")} />
       </View>
     </SafeAreaView>
   );

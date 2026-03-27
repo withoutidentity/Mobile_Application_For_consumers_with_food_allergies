@@ -1,4 +1,4 @@
-import { fetchAllergens } from '@/data/allergens';
+import { fetchAllergens, getAllergenDisplayName, getAllergenSearchTerms } from '@/data/allergens';
 import { Allergen } from '@/types';
 import { useRouter } from 'expo-router';
 import { AlertCircle, Search } from 'lucide-react-native';
@@ -28,9 +28,7 @@ export default function GuideScreen() {
   }, []);
 
   const filteredAllergens = allAllergens.filter(
-    (allergen) =>
-      allergen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      allergen.altNames.some((alias) => alias.toLowerCase().includes(searchQuery.toLowerCase())),
+    (allergen) => getAllergenSearchTerms(allergen).some((term) => term.includes(searchQuery.toLowerCase())),
   );
 
   return (
@@ -87,7 +85,9 @@ export default function GuideScreen() {
                 onPress={() => router.push(`/symptom/${allergen.id}`)}
               >
                 <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-lg font-semibold text-[#333333] flex-1">{allergen.name}</Text>
+                  <Text className="text-lg font-semibold text-[#333333] flex-1">
+                    {getAllergenDisplayName(allergen)}
+                  </Text>
                 </View>
 
                 <Text className="text-sm text-[#666666] mb-3">{allergen.description}</Text>

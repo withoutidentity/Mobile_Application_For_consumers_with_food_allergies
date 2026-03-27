@@ -1,6 +1,7 @@
 import Colors from "@/constants/Colors";
 import { fetchAllergens } from "@/data/allergens";
 import { Allergen, AllergenSymptom, Severity } from "@/types";
+import { getAllergenDisplayName, getLocalizedAliasNames } from "@/utils/allergenLocalization";
 import { useLocalSearchParams } from "expo-router";
 import { AlertCircle, AlertTriangle, Clock, Heart } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
@@ -76,12 +77,13 @@ export default function SymptomDetailScreen() {
 
   const symptomInfo: AllergenSymptom | null =
     orderedSymptoms.find((item) => item.defaultLevel === selectedSeverity) ?? null;
+  const localizedAliases = allergenInfo ? getLocalizedAliasNames(allergenInfo) : [];
 
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text className="text-lg font-semibold text-text mt-3">Loading Details...</Text>
+        <Text className="text-lg font-semibold text-text mt-3">กำลังโหลดรายละเอียด...</Text>
       </View>
     );
   }
@@ -90,9 +92,9 @@ export default function SymptomDetailScreen() {
     return (
       <View className="flex-1 justify-center items-center p-6">
         <AlertCircle size={64} color={Colors.unsafe} />
-        <Text className="text-xl font-bold text-text mt-4 mb-2">Information Not Found</Text>
+        <Text className="text-xl font-bold text-text mt-4 mb-2">ไม่พบข้อมูล</Text>
         <Text className="text-base text-textLight text-center">
-          We couldn&apos;t find symptom information for this allergen.
+          ไม่พบรายละเอียดอาการแพ้สำหรับสารก่อภูมิแพ้นี้
         </Text>
       </View>
     );
@@ -101,7 +103,9 @@ export default function SymptomDetailScreen() {
   return (
     <ScrollView className="flex-1 bg-background px-5 py-6">
       <View className="mb-6">
-        <Text className="text-2xl font-bold text-text mt-2 mb-2">{allergenInfo.name} Allergy</Text>
+        <Text className="text-2xl font-bold text-text mt-2 mb-2">
+          การแพ้{getAllergenDisplayName(allergenInfo)}
+        </Text>
         <Text className="text-base text-text leading-6 mb-4">{allergenInfo.description}</Text>
 
         <View className="flex-row flex-wrap gap-2">
@@ -119,10 +123,7 @@ export default function SymptomDetailScreen() {
                 }}
                 onPress={() => setSelectedSeverity(item.defaultLevel)}
               >
-                <Text
-                  className="font-semibold"
-                  style={{ color: isActive ? "#FFFFFF" : color }}
-                >
+                <Text className="font-semibold" style={{ color: isActive ? "#FFFFFF" : color }}>
                   ระดับ{getSeverityLabel(item.defaultLevel)}
                 </Text>
               </TouchableOpacity>
@@ -145,7 +146,7 @@ export default function SymptomDetailScreen() {
       <View className="mb-6">
         <View className="flex-row items-center mb-3">
           <AlertCircle size={20} color={Colors.unsafe} />
-          <Text className="text-lg font-semibold text-text ml-2">Common Symptoms</Text>
+          <Text className="text-lg font-semibold text-text ml-2">อาการที่พบบ่อย</Text>
         </View>
         <View className="bg-card rounded-lg p-3">
           {symptomInfo.symptoms.map((symptom, index) => (
@@ -159,7 +160,7 @@ export default function SymptomDetailScreen() {
       <View className="mb-6">
         <View className="flex-row items-center mb-3">
           <Heart size={20} color={Colors.primary} />
-          <Text className="text-lg font-semibold text-text ml-2">First Aid</Text>
+          <Text className="text-lg font-semibold text-text ml-2">การปฐมพยาบาลเบื้องต้น</Text>
         </View>
         <View className="bg-card rounded-lg p-3">
           {symptomInfo.firstAid.map((item, index) => (
@@ -173,11 +174,11 @@ export default function SymptomDetailScreen() {
       <View className="mb-6">
         <View className="flex-row items-center mb-3">
           <AlertTriangle size={20} color={Colors.caution} />
-          <Text className="text-lg font-semibold text-text ml-2">When to Seek Medical Help</Text>
+          <Text className="text-lg font-semibold text-text ml-2">เมื่อใดควรไปพบแพทย์</Text>
         </View>
         <View className="bg-unsafe/10 rounded-lg p-4 border-l-4 border-l-unsafe">
           <Text className="text-base text-text mb-3 font-medium">
-            If you experience any of the following symptoms, seek immediate medical attention:
+            หากมีอาการต่อไปนี้ ควรรีบไปพบแพทย์หรือขอความช่วยเหลือทางการแพทย์ทันที:
           </Text>
           <View>
             {symptomInfo.whenToSeekHelp.map((item, index) => (
@@ -192,10 +193,10 @@ export default function SymptomDetailScreen() {
       <View className="mb-6">
         <View className="flex-row items-center mb-3">
           <Clock size={20} color={Colors.secondary} />
-          <Text className="text-lg font-semibold text-text ml-2">Also Known As</Text>
+          <Text className="text-lg font-semibold text-text ml-2">ชื่อที่เกี่ยวข้อง</Text>
         </View>
         <View className="flex-row flex-wrap">
-          {allergenInfo.altNames.map((alias, index) => (
+          {localizedAliases.map((alias, index) => (
             <View key={index} className="bg-card rounded-2xl py-1.5 px-3 mr-2 mb-2">
               <Text className="text-sm text-text">{alias}</Text>
             </View>
@@ -205,8 +206,8 @@ export default function SymptomDetailScreen() {
 
       <View className="mt-4 p-4 bg-secondary/10 rounded-lg">
         <Text className="text-sm text-textLight italic leading-5">
-          Disclaimer: This information is provided for educational purposes only and is not
-          intended to be a substitute for professional medical advice, diagnosis, or treatment.
+          ข้อมูลนี้จัดทำขึ้นเพื่อการให้ความรู้เบื้องต้นเท่านั้น ไม่สามารถใช้แทนคำแนะนำ
+          การวินิจฉัย หรือการรักษาจากแพทย์และบุคลากรทางการแพทย์ได้
         </Text>
       </View>
     </ScrollView>

@@ -1,13 +1,9 @@
 import { Allergen, Product, UserProfile } from '@/types';
-
-const normalizeText = (value: unknown): string | null => {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const normalized = value.trim().toLowerCase();
-  return normalized.length > 0 ? normalized : null;
-};
+import {
+  getAllergenCanonicalKey,
+  getAllergenSearchTerms,
+  normalizeAllergenTerm,
+} from './allergenLocalization';
 
 const normalizeStringArray = (values: unknown): string[] => {
   if (!Array.isArray(values)) {
@@ -15,7 +11,7 @@ const normalizeStringArray = (values: unknown): string[] => {
   }
 
   return values
-    .map((value) => normalizeText(value))
+    .map((value) => normalizeAllergenTerm(value))
     .filter((value): value is string => Boolean(value));
 };
 
@@ -34,27 +30,31 @@ export function analyzeProduct(
     ? allAllergens.filter((allergen) => userAllergenIds.includes(allergen.id))
     : [];
 
+  const productWarningKeys = productAllergenWarnings
+    .map((warning) => getAllergenCanonicalKey(warning))
+    .filter((value): value is string => Boolean(value));
   const directMatches: Allergen[] = [];
   const potentialMatches: Allergen[] = [];
 
   userAllergenDetails.forEach((allergen) => {
-    const namesToCheck = Array.from(
-      new Set(normalizeStringArray([allergen.name, ...allergen.altNames])),
-    );
+    const namesToCheck = getAllergenSearchTerms(allergen);
+    const allergenKey = getAllergenCanonicalKey(allergen.name);
 
     if (namesToCheck.length === 0) {
       return;
     }
 
-    const isIngredientMatch = namesToCheck.some((name) => ingredientsText.includes(name));
-    if (!isIngredientMatch) {
-      return;
-    }
-
-    const isDirectWarning = productAllergenWarnings.some((warning) => namesToCheck.includes(warning));
+    const isDirectWarning =
+      productAllergenWarnings.some((warning) => namesToCheck.includes(warning)) ||
+      (allergenKey ? productWarningKeys.includes(allergenKey) : false);
 
     if (isDirectWarning && !directMatches.some((match) => match.id === allergen.id)) {
       directMatches.push(allergen);
+      return;
+    }
+
+    const isIngredientMatch = namesToCheck.some((name) => ingredientsText.includes(name));
+    if (!isIngredientMatch) {
       return;
     }
 

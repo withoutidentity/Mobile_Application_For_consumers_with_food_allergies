@@ -37,11 +37,11 @@ export default function ScannerScreen() {
         setScanned(false)
       } else {
         Alert.alert(
-          'Product Not Found',
-          'We couldn\'t find this product in our database. Please try scanning another product.',
+          'ไม่พบสินค้า',
+          'ไม่พบสินค้านี้ในฐานข้อมูล กรุณาลองสแกนสินค้าอื่น',
           [
             {
-              text: 'OK',
+              text: 'ตกลง',
               onPress: () => setScanned(false),
             },
           ]
@@ -50,11 +50,11 @@ export default function ScannerScreen() {
     } catch (error) {
       console.error('Failed to load products', error);
       Alert.alert(
-        'Error',
-        'Unable to load product data. Please try again later.',
+        'เกิดข้อผิดพลาด',
+        'ไม่สามารถโหลดข้อมูลสินค้าได้ กรุณาลองใหม่อีกครั้งภายหลัง',
         [
           {
-            text: 'OK',
+            text: 'ตกลง',
             onPress: () => setScanned(false),
           },
         ]
