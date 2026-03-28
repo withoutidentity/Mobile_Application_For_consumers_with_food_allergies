@@ -1,12 +1,29 @@
+export type Severity = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: 'ADMIN' | 'USER';
+}
+
+export interface AllergenSymptom {
+  id?: number;
+  allergenId: number;
+  allergenName: string;
+  defaultLevel: Severity;
+  symptoms: string[];
+  firstAid: string[];
+  whenToSeekHelp: string[];
+}
+
 export interface Allergen {
   id: number;
   name: string;
   altNames: string[];
   description: string;
-  defaultLevel: Severity;
+  symptoms: AllergenSymptom[];
 }
-
-export type Severity = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface UserAllergy {
   allergenId: number;
@@ -14,11 +31,12 @@ export interface UserAllergy {
 }
 
 export interface UserProfile {
-  // เปลี่ยนจาก number[] เป็น UserAllergy[]
   allergens: UserAllergy[];
   dietaryRestrictions: string[];
   name?: string;
   emergencyContact?: string;
+  role: 'USER' | 'ADMIN';
+  email?: string;
 }
 
 export interface Product {
@@ -29,12 +47,4 @@ export interface Product {
   ingredients: string[];
   allergenWarnings: string[];
   image?: string;
-}
-
-export interface AllergenSymptom {
-  allergenId: number;
-  allergenName: string;
-  symptoms: string[];
-  firstAid: string[];
-  whenToSeekHelp: string[];
 }

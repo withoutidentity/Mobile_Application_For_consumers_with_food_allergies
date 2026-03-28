@@ -15,91 +15,126 @@ enum Severity {
   HIGH
 }
 
+// บทบาทของผู้ใช้
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ConsentType {
+  TOS
+  PRIVACY_POLICY
+  SENSITIVE_HEALTH_DATA
+}
+
+enum ConsentStatus {
+  GRANTED
+  WITHDRAWN
+}
+
 model User {
-  id                   Int             @id @default(autoincrement())
-  email                String          @unique
-  password             String
-  name                 String
-  dietaryRestrictions  String[]        // เช่น มังสวิรัติ, คีโต, เจ
-  emergencyContact     String?
-  allergies            UserAllergy[]   // ความสัมพันธ์กับสารก่อภูมิแพ้
-  histories            ScanHistory[]   // ประวัติการสแกนสินค้า
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  refreshToken         String?
+  id                  Int           @id @default(autoincrement())
+  email               String        @unique
+  password            String
+  name                String
+  role                Role          @default(USER)
+  dietaryRestrictions String[]      // เช่น มังสวิรัติ, คีโต, เจ
+  emergencyContact    String?
+  allergies           UserAllergy[]  // ความสัมพันธ์กับสารก่อภูมิแพ้
+  histories           ScanHistory[]  // ประวัติการสแกนสินค้า
+  consentLogs         ConsentLog[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  refreshToken        String?
 
   @@map("users")
 }
 
 model Allergen {
-  id              Int                 @id @default(autoincrement())
-  name            String              // ชื่อสารก่อภูมิแพ้ (ไทย)
-  altNames        String[]            // ชื่ออื่นๆ เช่น Peanut, Gluten, Shrimp
-  description     String?             // คำอธิบายเพิ่มเติม
-  defaultLevel    Severity            // ระดับความรุนแรงโดยทั่วไป
-  products        ProductAllergen[]   // ความสัมพันธ์กับสินค้า
-  users           UserAllergy[]       // ผู้ใช้ที่แพ้สารนี้
-  symptoms        AllergenSymptom?    // ความสัมพันธ์กับตารางอาการ
+  id          Int               @id @default(autoincrement())
+  name        String
+  altNames    String[]          // ชื่ออื่นๆ เช่น Peanut, Gluten, Shrimp
+  description String?
+  products    ProductAllergen[] // ความสัมพันธ์กับสินค้า
+  users       UserAllergy[]     // ผู้ใช้ที่แพ้สารนี้
+  symptoms    AllergenSymptom[] // ความสัมพันธ์กับตารางอาการ
 
   @@map("allergens")
 }
 
 model AllergenSymptom {
-  id              Int        @id @default(autoincrement())
-  allergenId      Int        @unique
-  allergen        Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
-  symptoms        String[]   // อาการเมื่อได้รับสารนี้ เช่น คัน ผื่น หายใจลำบาก
-  firstAid        String[]   // วิธีปฐมพยาบาลเบื้องต้น
-  whenToSeekHelp  String[]   // เมื่อใดควรไปโรงพยาบาล
+  id             Int      @id @default(autoincrement())
+  allergenId     Int
+  allergen       Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  defaultLevel   Severity
+  symptoms       String[]   // อาการเมื่อได้รับสารนี้ เช่น คัน ผื่น หายใจลำบาก
+  firstAid       String[]   // วิธีปฐมพยาบาลเบื้องต้น
+  whenToSeekHelp String[]   // เมื่อใดควรไปโรงพยาบาล
 
+  @@unique([allergenId, defaultLevel])
   @@map("allergen_symptoms")
 }
 
 model Product {
-  id              Int                 @id @default(autoincrement())
-  barcode         String              @unique
-  name            String
-  brand           String?
-  category        String?
-  imageUrl        String?
-  ingredients     String[]            // ส่วนประกอบทั้งหมด
-  allergens       ProductAllergen[]   // ความสัมพันธ์กับสารก่อภูมิแพ้
-  histories       ScanHistory[]       // ประวัติการสแกน
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id          Int               @id @default(autoincrement())
+  barcode     String            @unique
+  name        String
+  brand       String?
+  category    String?
+  imageUrl    String?
+  ingredients String[]
+  allergens   ProductAllergen[]
+  histories   ScanHistory[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@map("products")
 }
 
 model ProductAllergen {
-  id              Int        @id @default(autoincrement())
-  productId       Int
-  allergenId      Int
-  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  allergen        Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  allergenId Int
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  allergen   Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
 
   @@map("product_allergens")
 }
 
 model UserAllergy {
-  id              Int        @id @default(autoincrement())
-  userId          Int
-  allergenId      Int
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  allergen        Allergen   @relation(fields: [allergenId], references: [id], onDelete: Cascade)
-  severity        Severity   // ระดับความรุนแรงที่ผู้ใช้ระบุเอง (เฉพาะบุคคล)
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  allergenId Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allergen   Allergen @relation(fields: [allergenId], references: [id], onDelete: Cascade)
+  severity   Severity
 
   @@unique([userId, allergenId])
   @@map("user_allergies")
 }
 
 model ScanHistory {
-  id              Int        @id @default(autoincrement())
-  userId          Int
-  productId       Int
-  scannedAt       DateTime   @default(now())
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product         Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  scannedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("scan_histories")
+}
+
+model ConsentLog {
+  id              Int           @id @default(autoincrement()) @map("log_id")
+  userId          Int           @map("user_id")
+  consentType     ConsentType   @map("consent_type")
+  consentStatus   ConsentStatus @map("consent_status")
+  documentVersion String        @map("document_version")
+  ipAddress       String?       @map("ip_address")
+  userAgent       String?       @map("user_agent")
+  actionTimestamp DateTime      @default(now()) @map("action_timestamp")
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, consentType, actionTimestamp])
+  @@map("consent_logs")
 }

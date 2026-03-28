@@ -57,11 +57,6 @@ export default function SearchScreen() {
       <View className="flex-1">
         {/* 1. ส่วน Header และ Search Bar */}
         <View className="flex-row items-center p-4 border-b border-border bg-card">
-          {/* ปุ่มย้อนกลับ */}
-          <TouchableOpacity onPress={() => router.back()} className="mr-3 p-1">
-            <ChevronLeft size={28} className="text-text" />
-          </TouchableOpacity>
-
           {/* ช่องค้นหา */}
           <View className="flex-1 flex-row items-center bg-background rounded-lg px-3 py-2">
             <Search size={20} className="text-textLight" />

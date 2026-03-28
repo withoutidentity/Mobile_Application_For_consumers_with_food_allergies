@@ -28,6 +28,7 @@ type BackendUser = {
   id: number;
   name: string;
   email: string;
+  role: 'USER' | 'ADMIN';
   emergencyContact: string | null;
   dietaryRestrictions: string[];
   // ปรับ Type ให้ตรงกับข้อมูลใหม่จาก Backend
@@ -44,7 +45,7 @@ type BackendUser = {
 type BackendProduct = Omit<Product, 'allergenWarnings' | 'id' | 'image'> & {
   id: number;
   imageUrl?: string;
-  allergens: { allergen: { altNames: string[] } }[];
+  allergens: { allergen: { name: string; altNames: string[] } }[];
 };
 
 export const getMyProfile = async (): Promise<UserProfile> => { 
@@ -54,6 +55,8 @@ export const getMyProfile = async (): Promise<UserProfile> => {
   // Transform backend data to frontend UserProfile
   return {
     name: user.name,
+    role: user.role,
+    email: user.email,
     emergencyContact: user.emergencyContact || undefined,
     dietaryRestrictions: user.dietaryRestrictions,
     // เปลี่ยนการ map ข้อมูลให้ถูกต้อง
@@ -91,9 +94,7 @@ export const getScanHistory = async (): Promise<Product[]> => {
 
     // 2. แปลงข้อมูล BackendProduct[] ให้เป็น Product[] (เหมือนใน productService.ts)
     const frontendProducts: Product[] = backendProducts.map((product) => {
-      const allergenWarnings = product.allergens.flatMap(
-        (pa) => pa.allergen.altNames
-      );
+      const allergenWarnings = product.allergens.map((pa) => pa.allergen.name);
 
       return {
         ...product,

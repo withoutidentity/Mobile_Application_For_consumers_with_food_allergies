@@ -33,11 +33,11 @@ export default function ScannerScreen() {
         router.push(`/product/${product.id}`);
       } else {
         Alert.alert(
-          'Product Not Found',
-          'We couldn\'t find this product in our database. Please try scanning another product.',
+          'ไม่พบสินค้า',
+          'ไม่พบสินค้านี้ในฐานข้อมูล กรุณาลองสแกนสินค้าอื่น',
           [
             {
-              text: 'OK',
+              text: 'ตกลง',
               onPress: () => setScanned(false),
             },
           ]
@@ -46,8 +46,9 @@ export default function ScannerScreen() {
     } catch (error) {
       console.error('Failed to load products', error);
       Alert.alert(
-        'Error',
-        'Unable to load product data. Please try again later.',)
+        'เกิดข้อผิดพลาด',
+        'ไม่สามารถโหลดข้อมูลสินค้าได้ กรุณาลองใหม่อีกครั้งภายหลัง',
+      );
     };
   }
   
@@ -58,7 +59,7 @@ export default function ScannerScreen() {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>Requesting camera permission...</Text>
+        <Text style={styles.text}>กำลังขอสิทธิ์เข้าถึงกล้อง...</Text>
       </View>
     );
   }
@@ -67,12 +68,12 @@ export default function ScannerScreen() {
     return (
       <View style={styles.container}>
         <AlertCircle size={64} color={Colors.primary} style={styles.icon} />
-        <Text className='text-2xl font-bold text-center text-red-500 mb-2'>Camera Permission Required</Text>
+        <Text className='text-2xl font-bold text-center text-red-500 mb-2'>ต้องใช้สิทธิ์เข้าถึงกล้อง</Text>
         <Text style={styles.text}>
-          We need camera permission to scan product barcodes. Please grant permission to continue.
+          แอปต้องใช้สิทธิ์เข้าถึงกล้องเพื่อสแกนบาร์โค้ดสินค้า กรุณาอนุญาตเพื่อดำเนินการต่อ
         </Text>
         <Button
-          title="Grant Permission"
+          title="อนุญาต"
           onPress={requestPermission}
           style={styles.button}
         />
@@ -99,12 +100,12 @@ export default function ScannerScreen() {
           </View>
           
           <Text style={styles.instructions}>
-            Position the barcode within the frame to scan
+            วางบาร์โค้ดให้อยู่ภายในกรอบเพื่อสแกน
           </Text>
           
           <View style={styles.buttonContainer}>
             <Button
-              title="Flip Camera"
+              title="สลับกล้อง"
               onPress={toggleCameraFacing}
               variant="outline"
               style={styles.flipButton}
@@ -112,7 +113,7 @@ export default function ScannerScreen() {
             
             {scanned && (
               <Button
-                title="Scan Again"
+                title="สแกนอีกครั้ง"
                 onPress={() => setScanned(false)}
                 variant="primary"
                 style={styles.scanButton}

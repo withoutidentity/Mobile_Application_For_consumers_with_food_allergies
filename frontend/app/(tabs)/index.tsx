@@ -18,12 +18,16 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     (async () => {
-      // ดึงข้อมูลประวัติการสแกนและข้อมูลสารก่อภูมิแพ้ทั้งหมด
-      const historyProducts = await getScanHistory();
-      const allergens = await fetchAllergens();
+      try {
+        // ดึงข้อมูลประวัติการสแกนและข้อมูลสารก่อภูมิแพ้ทั้งหมด
+        const historyProducts = await getScanHistory();
+        const allergens = await fetchAllergens();
 
-      setRecentlyScanned(historyProducts);
-      setAllAllergens(allergens);
+        setRecentlyScanned(historyProducts || []);
+        setAllAllergens(allergens || []);
+      } catch (error) {
+        console.error("Error loading home data:", error);
+      }
     })();
   }, []);
 
@@ -139,7 +143,7 @@ export default function HomeScreen() {
             <Text className="text-lg font-semibold mb-4 text-text">
               โปรไฟล์การแพ้ของคุณ
             </Text>
-            {profile.allergens.length > 0 ? (
+            {profile?.allergens?.length > 0 ? (
               <View className="flex items-center">
                 <Text className="text-base flex-1 text-text mb-2">
                   คุณมีสารก่อภูมิแพ้ {profile.allergens.length} รายการ

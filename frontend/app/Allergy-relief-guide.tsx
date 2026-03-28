@@ -61,13 +61,13 @@ export default function AllergyGuideScreen() {
     // 2. ใช้ className แทน StyleSheet
     <View className="flex-1 bg-gray-50"> 
       
-      {/* Custom Header */}
+      {/* Custom Header
       <View className="bg-teal-600 h-12 flex-row items-center px-4">
         <TouchableOpacity onPress={() => router.back()}>
           <ArrowLeft size={22} color="#fff" />
         </TouchableOpacity>
         <Text className="text-white text-lg font-semibold ml-3">คู่มือบรรเทาอาการแพ้</Text>
-      </View>
+      </View> */}
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         

@@ -1,45 +1,71 @@
 import { Allergen, Product, UserProfile } from '@/types';
+import {
+  getAllergenCanonicalKey,
+  getAllergenSearchTerms,
+  normalizeAllergenTerm,
+} from './allergenLocalization';
+
+const normalizeStringArray = (values: unknown): string[] => {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return values
+    .map((value) => normalizeAllergenTerm(value))
+    .filter((value): value is string => Boolean(value));
+};
 
 export function analyzeProduct(
   product: Product,
   userProfile: UserProfile,
-  allAllergens: Allergen[] // 1. รับรายการ allergen ทั้งหมดเข้ามา
+  allAllergens: Allergen[],
 ) {
-  // userProfile.allergens คือ array ของ allergen id (number)
-  const userAllergenIds = userProfile.allergens.map(ua => ua.allergenId);
-  const productAllergenWarnings = product.allergenWarnings;
+  const userAllergenIds = Array.isArray(userProfile?.allergens)
+    ? userProfile.allergens.map((ua) => ua.allergenId)
+    : [];
+  const productAllergenWarnings = normalizeStringArray(product?.allergenWarnings);
+  const ingredientsText = normalizeStringArray(product?.ingredients).join(', ');
 
-  // 2. หาข้อมูล allergen ที่ผู้ใช้แพ้ จาก id ที่ระบุในโปรไฟล์
-  const userAllergenDetails = allAllergens.filter((allergen) => userAllergenIds.includes(allergen.id));
+  const userAllergenDetails = Array.isArray(allAllergens)
+    ? allAllergens.filter((allergen) => userAllergenIds.includes(allergen.id))
+    : [];
 
-  // 3. สร้าง list ของชื่อและชื่อแฝงทั้งหมดที่ผู้ใช้แพ้ (ในรูปแบบ lowercase)
-  const allUserAllergenNames = userAllergenDetails.flatMap((allergen) =>
-    [allergen.name.toLowerCase(), ...allergen.altNames.map((alias) => alias.toLowerCase())]
-  );
-
-  // 4. ตรวจสอบการแพ้โดยตรงจาก `allergenWarnings` ของสินค้า
-  // และตรวจสอบการแพ้ทางอ้อมจาก `ingredients`
+  const productWarningKeys = productAllergenWarnings
+    .map((warning) => getAllergenCanonicalKey(warning))
+    .filter((value): value is string => Boolean(value));
   const directMatches: Allergen[] = [];
   const potentialMatches: Allergen[] = [];
 
-  // ตรวจสอบจากส่วนประกอบ (ingredients)
-  const ingredientsText = product.ingredients.join(', ').toLowerCase();
   userAllergenDetails.forEach((allergen) => {
-    const namesToCheck = [allergen.name.toLowerCase(), ...allergen.altNames.map(a => a.toLowerCase())];
-    const isMatch = namesToCheck.some(name => ingredientsText.includes(name));
+    const namesToCheck = getAllergenSearchTerms(allergen);
+    const allergenKey = getAllergenCanonicalKey(allergen.name);
 
-    if (isMatch) {
-      // ตรวจสอบว่าอยู่ใน `allergenWarnings` หรือไม่เพื่อแยกว่าเป็น direct หรือ potential
-      const isDirectWarning = productAllergenWarnings.some(warning => namesToCheck.includes(warning.toLowerCase()));
-      if (isDirectWarning && !directMatches.some(m => m.id === allergen.id)) {
-        directMatches.push(allergen);
-      } else if (!directMatches.some(m => m.id === allergen.id) && !potentialMatches.some(m => m.id === allergen.id)) {
-        potentialMatches.push(allergen);
-      }
+    if (namesToCheck.length === 0) {
+      return;
     }
-  })
 
-  // Determine safety status
+    const isDirectWarning =
+      productAllergenWarnings.some((warning) => namesToCheck.includes(warning)) ||
+      (allergenKey ? productWarningKeys.includes(allergenKey) : false);
+
+    if (isDirectWarning && !directMatches.some((match) => match.id === allergen.id)) {
+      directMatches.push(allergen);
+      return;
+    }
+
+    const isIngredientMatch = namesToCheck.some((name) => ingredientsText.includes(name));
+    if (!isIngredientMatch) {
+      return;
+    }
+
+    if (
+      !directMatches.some((match) => match.id === allergen.id) &&
+      !potentialMatches.some((match) => match.id === allergen.id)
+    ) {
+      potentialMatches.push(allergen);
+    }
+  });
+
   let safetyStatus: 'safe' | 'caution' | 'unsafe' = 'safe';
 
   if (directMatches.length > 0) {
@@ -56,5 +82,5 @@ export function analyzeProduct(
 }
 
 export function findProductByBarcode(barcode: string, products: Product[]): Product | undefined {
-  return products.find(product => product.barcode === barcode);
+  return products.find((product) => product.barcode === barcode);
 }
