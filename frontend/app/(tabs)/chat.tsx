@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Send } from "lucide-react-native";
-import { sendChatMessage } from "@/data/chatService";
+import { getChatHistory, sendChatMessage } from "@/data/chatService";
 import { useUserProfile } from "@/context/UserProfileContext";
 
 type SafetyStatus = "SAFE" | "UNSAFE";
@@ -27,17 +28,46 @@ const extractBarcode = (text: string) => {
   return match ? match[0] : undefined;
 };
 
+const welcomeMessage: Message = {
+  id: "welcome",
+  text: "สวัสดีค่ะ ฉันเป็นผู้ช่วยเรื่องสารก่อภูมิแพ้ คุณสามารถพิมพ์หรือส่งบาร์โค้ดเพื่อให้ประเมินความปลอดภัยได้",
+  sender: "bot",
+  safety: "SAFE",
+};
+
 export default function ChatBotScreen() {
   const { profile } = useUserProfile();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      text: "สวัสดีค่ะ ฉันเป็นผู้ช่วยเรื่องสารก่อภูมิแพ้ คุณสามารถพิมพ์หรือส่งบาร์โค้ดเพื่อให้ประเมินความปลอดภัยได้",
-      sender: "bot",
-      safety: "SAFE",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await getChatHistory();
+
+        if (history.length === 0) {
+          setMessages([welcomeMessage]);
+          return;
+        }
+
+        setMessages(
+          history.map((message) => ({
+            id: String(message.id),
+            text: message.text,
+            sender: message.sender === "USER" ? "user" : "bot",
+            safety: message.safety === "SAFE" || message.safety === "UNSAFE" ? message.safety : undefined,
+          }))
+        );
+      } catch {
+        setMessages([welcomeMessage]);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    void loadHistory();
+  }, []);
 
   const handleSend = async () => {
     const userText = input.trim();
@@ -57,7 +87,7 @@ export default function ChatBotScreen() {
       pending: true,
     };
 
-    setMessages((prev) => [pendingMessage, userMessage, ...prev]);
+    setMessages((prev) => [...prev, userMessage, pendingMessage]);
     setInput("");
 
     try {
@@ -82,7 +112,7 @@ export default function ChatBotScreen() {
             : msg
         )
       );
-    } catch (error) {
+    } catch {
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === pendingMessage.id
@@ -131,20 +161,27 @@ export default function ChatBotScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 16 }}
-        inverted
-      />
+      {loadingHistory ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#0f766e" />
+        </View>
+      ) : (
+        <FlatList
+          data={[...messages].reverse()}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={{ padding: 16 }}
+          inverted
+        />
+      )}
 
       <View className="flex-row items-center border-t border-gray-300 px-3 py-4 bg-white">
         <View style={{ flex: 1, flexDirection: "row" }}>
           <View style={{ flex: 1, flexDirection: "column-reverse" }}>
             <TextInput
-              className="h-12 px-3 text-base text-gray-900 border border-gray-300 rounded-full mr-2"
+              className="h-12 px-3 text-base border border-gray-300 rounded-full mr-2"
               placeholder="พิมพ์ข้อความหรือบาร์โค้ด..."
+              placeholderTextColor="#666666"
               value={input}
               onChangeText={setInput}
             />

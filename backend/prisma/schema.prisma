@@ -32,6 +32,11 @@ enum ConsentStatus {
   WITHDRAWN
 }
 
+enum ChatSender {
+  USER
+  BOT
+}
+
 model User {
   id                  Int           @id @default(autoincrement())
   email               String        @unique
@@ -43,6 +48,8 @@ model User {
   allergies           UserAllergy[]  // ความสัมพันธ์กับสารก่อภูมิแพ้
   histories           ScanHistory[]  // ประวัติการสแกนสินค้า
   consentLogs         ConsentLog[]
+  chatMessages        ChatMessage[]
+  passwordResetCodes  PasswordResetCode[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   refreshToken        String?
@@ -137,4 +144,30 @@ model ConsentLog {
 
   @@index([userId, consentType, actionTimestamp])
   @@map("consent_logs")
+}
+
+model ChatMessage {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  sender    ChatSender
+  text      String
+  safety    String?
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("chat_messages")
+}
+
+model PasswordResetCode {
+  id         Int       @id @default(autoincrement())
+  userId      Int
+  code        String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("password_reset_codes")
 }

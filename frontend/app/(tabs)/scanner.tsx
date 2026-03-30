@@ -1,18 +1,20 @@
 import Button from '@/components/Button';
 import Colors from '@/constants/Colors';
-import getProducts from '@/data/productService';
-import { addScanToHistory } from '@/data/userService'; // 1. Import addScanToHistory
+import fetchProducts from '@/data/productService';
+import { addScanToHistory } from '@/data/userService';
 import { findProductByBarcode } from '@/utils/productAnalyzer';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { AlertCircle } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [scanned, setScanned] = useState(false);
+  const isNavigatingRef = useRef(false);
+  const lastScanRef = useRef<{ code: string; at: number } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,21 +23,40 @@ export default function ScannerScreen() {
     }
   }, [permission, requestPermission]);
 
+  useEffect(() => {
+    return () => {
+      isNavigatingRef.current = false;
+    };
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setScanned(false);
+      isNavigatingRef.current = false;
+      return undefined;
+    }, [])
+  );
 
   const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
-    if (scanned) return;
-    
+    const now = Date.now();
+    const lastScan = lastScanRef.current;
+
+    if (scanned || isNavigatingRef.current) return;
+    if (lastScan && lastScan.code === data && now - lastScan.at < 1000) return;
+
+    lastScanRef.current = { code: data, at: now };
     setScanned(true);
-    
+    isNavigatingRef.current = true;
+
     try {
-      const products = await getProducts();
+      const products = await fetchProducts();
       const product = findProductByBarcode(data, products);
-      
+
       if (product) {
-        addScanToHistory(product.id); // 2. เรียกใช้ฟังก์ชันเพื่อบันทึกประวัติ
+        void addScanToHistory(product.id);
         router.push(`/product/${product.id}`);
-        setScanned(false)
       } else {
+        isNavigatingRef.current = false;
         Alert.alert(
           'ไม่พบสินค้า',
           'ไม่พบสินค้านี้ในฐานข้อมูล กรุณาลองสแกนสินค้าอื่น',
@@ -48,6 +69,7 @@ export default function ScannerScreen() {
         );
       }
     } catch (error) {
+      isNavigatingRef.current = false;
       console.error('Failed to load products', error);
       Alert.alert(
         'เกิดข้อผิดพลาด',
@@ -62,9 +84,9 @@ export default function ScannerScreen() {
     }
   };
 
-  const toggleCameraFacing = () => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  };
+  // const toggleCameraFacing = () => {
+  //   setFacing(current => (current === 'back' ? 'front' : 'back'));
+  // };
 
   if (!permission) {
     return (
@@ -102,7 +124,6 @@ export default function ScannerScreen() {
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       >
         <View style={styles.overlay}>
-          {/* Top section */}
           <View style={styles.topSection}>
             <Text style={styles.mainTitle}>สแกนบาร์โค้ด</Text>
             <Text style={styles.subtitle}>
@@ -110,26 +131,16 @@ export default function ScannerScreen() {
             </Text>
           </View>
 
-          {/* Barcode scanning area */}
           <View style={styles.scanFrame}>
-            {/* Corner decorations - Top Left */}
             <View style={styles.cornerTopLeft} />
-            
-            {/* Corner decorations - Top Right */}
             <View style={styles.cornerTopRight} />
-            
-            {/* Corner decorations - Bottom Left */}
             <View style={styles.cornerBottomLeft} />
-            
-            {/* Corner decorations - Bottom Right */}
             <View style={styles.cornerBottomRight} />
-            
-            {/* Static scan line */}
+
             {!scanned && (
               <View style={styles.scanLine} />
             )}
 
-            {/* Barcode icon in center */}
             <View style={styles.barcodeIconContainer}>
               <View style={styles.barcodeLines}>
                 <View style={[styles.barcodeLine, { width: 3 }]} />
@@ -144,9 +155,14 @@ export default function ScannerScreen() {
             </View>
           </View>
 
-          {/* Bottom section */}
           <View style={styles.bottomSection}>
-            {scanned && (
+            {/* <Button
+              title="สลับกล้อง"
+              onPress={toggleCameraFacing}
+              variant="outline"
+              style={styles.flipButton}
+            /> */}
+            {scanned && !isNavigatingRef.current && (
               <View style={styles.statusContainer}>
                 <Text style={styles.statusText}>กำลังตรวจสอบ...</Text>
               </View>
@@ -280,11 +296,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
+    marginTop: 16,
   },
   statusText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  flipButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#fff',
   },
   icon: {
     marginBottom: 20,

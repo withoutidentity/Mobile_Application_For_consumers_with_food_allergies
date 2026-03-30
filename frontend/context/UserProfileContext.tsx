@@ -1,12 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useEffect, useState } from 'react';
-import { UserProfile, UserAllergy, Severity } from '@/types'; 
+import { UserProfile, UserAllergy, Severity } from '@/types';
 import { useAuth } from './AuthContext';
-import { getMyProfile, updateUserAllergens } from "@/data/userService";
+import { getMyProfile, updateMyProfile, updateUserAllergens } from "@/data/userService";
 
-const STORAGE_KEY = 'user_profile';
- 
 export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   const [profile, setProfile] = useState<UserProfile>({
     allergens: [],
@@ -18,13 +15,9 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
   const { token, loading: authLoading, removeToken } = useAuth();
 
   useEffect(() => {
-    // 1. ถ้า auth loading เสร็จแล้ว และมี token (ผู้ใช้ล็อกอินอยู่)
     if (!authLoading && token) {
-      loadProfileFromAPI();
-    } 
-    // 2. ถ้า auth loading เสร็จแล้ว และไม่มี token (ผู้ใช้ล็อกเอาท์)
-    else if (!authLoading && !token) {
-      // ให้ล้างข้อมูลโปรไฟล์ใน state และหยุด loading
+      void loadProfileFromAPI();
+    } else if (!authLoading && !token) {
       setProfile({ allergens: [], dietaryRestrictions: [], role: 'USER' });
       setIsLoading(false);
     }
@@ -37,13 +30,9 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
       setProfile(apiProfile);
     } catch (error: any) {
       console.error('Failed to load profile from API:', error);
-      // หากดึงข้อมูลไม่สำเร็จ อาจจะ fallback ไปใช้ข้อมูลเก่า หรือเคลียร์โปรไฟล์
-      // ในที่นี้เราจะปล่อยให้เป็น state ว่างเปล่าไปก่อน
-    if (error.response && error.response.status === 401) {
-      // ถ้า Token หมดอายุ (401) ให้ทำการ Logout หรือเคลียร์ Token
-      await removeToken();
-      // อาจจะ Redirect ไปหน้า Login
-    }
+      if (error.response && error.response.status === 401) {
+        await removeToken();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -51,15 +40,19 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
 
   const saveProfile = async (updatedProfile: UserProfile) => {
     try {
-      // 1. Optimistic Update: อัปเดต state ใน UI ทันทีเพื่อให้ตอบสนองเร็ว
       setProfile(updatedProfile);
 
-      // 2. ส่งข้อมูลไปที่ Backend ในเบื้องหลัง
-      // เราไม่จำเป็นต้อง await หรือ refetch ข้อมูลใหม่ที่นี่
-      // เพราะ UI ได้อัปเดตไปแล้ว
-      updateUserAllergens(updatedProfile.allergens).catch(error => {
-        console.error('Failed to sync profile to API, rolling back UI is recommended:', error);
-        // ในแอปพลิเคชันจริง อาจจะต้องมี logic ในการ rollback UI กลับไปสถานะเดิมหากการบันทึกผิดพลาด
+      const syncedProfile = await updateMyProfile({
+        name: updatedProfile.name || '',
+        emergencyContact: updatedProfile.emergencyContact,
+        dietaryRestrictions: updatedProfile.dietaryRestrictions || [],
+      });
+
+      await updateUserAllergens(updatedProfile.allergens);
+
+      setProfile({
+        ...syncedProfile,
+        allergens: updatedProfile.allergens,
       });
     } catch (error) {
       console.error('An error occurred during the save process:', error);
@@ -68,8 +61,6 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
 
   const updateAllergen = (allergenId: number, severity: Severity) => {
     setProfile(currentProfile => {
-      // หาก currentProfile ไม่มีค่า (ซึ่งไม่ควรจะเกิดขึ้น) ให้คืนค่าเดิมกลับไป
-      // เพื่อป้องกันการคืนค่า null ซึ่งผิดประเภท
       if (!currentProfile) return currentProfile;
 
       const existingAllergenIndex = currentProfile.allergens.findIndex(
@@ -85,13 +76,12 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
       } else {
         newAllergens = [...currentProfile.allergens, { allergenId, severity }];
       }
-      
+
       const updatedProfile = { ...currentProfile, allergens: newAllergens };
-      saveProfile(updatedProfile); // saveProfile จะจัดการการส่งข้อมูลไป backend เอง
+      void saveProfile(updatedProfile);
       return updatedProfile;
     });
   };
-
 
   const removeAllergen = (allergenId: number) => {
     setProfile(currentProfile => {
@@ -99,7 +89,7 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
 
       const newAllergens = currentProfile.allergens.filter(allergy => allergy.allergenId !== allergenId);
       const updatedProfile = { ...currentProfile, allergens: newAllergens };
-      saveProfile(updatedProfile);
+      void saveProfile(updatedProfile);
       return updatedProfile;
     });
   };
@@ -126,7 +116,6 @@ export const [UserProfileProvider, useUserProfile] = createContextHook(() => {
     const newProfile = { ...profile, ...updatedProfile };
     await saveProfile(newProfile);
   };
-  
 
   return {
     profile,

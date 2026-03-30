@@ -7,7 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useUserProfile } from "@/context/UserProfileContext";
 import "./global.css";
 
-// Keep the native splash screen visible until auth bootstrap finishes.
 void SplashScreen.preventAutoHideAsync().catch(() => {
   // Expo Go can warn if splash handling has already been initialized.
 });
@@ -46,9 +45,10 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "(auth)";
     const currentRoute = segments[segments.length - 1];
     const normalizedRole = profile?.role?.toUpperCase();
+    const passwordRecoveryRoutes = ["forgot-password-email", "forgot-password-reset"];
 
     if (!token) {
-      if (!inAuthGroup) {
+      if (!inAuthGroup && !passwordRecoveryRoutes.includes(currentRoute)) {
         router.replace("/login");
       }
       return;
@@ -112,10 +112,13 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
+      <Stack.Screen name="forgot-password-email" options={{ title: "ลืมรหัสผ่าน" }} />
+      <Stack.Screen name="forgot-password-reset" options={{ title: "ตั้งรหัสผ่านใหม่" }} />
       <Stack.Screen name="forbidden" options={{ title: "ไม่มีสิทธิ์เข้าถึง" }} />
       <Stack.Screen name="symptom/[allergen]" options={{ title: "รายละเอียดอาการแพ้" }} />
       <Stack.Screen name="product/[id]" options={{ title: "รายละเอียดสินค้า" }} />
       <Stack.Screen name="user-profile" options={{ title: "รายละเอียดโปรไฟล์" }} />
+      <Stack.Screen name="change-password" options={{ title: "เปลี่ยนรหัสผ่าน" }} />
       <Stack.Screen name="allergen-profile" options={{ title: "สารก่อภูมิแพ้ของฉัน" }} />
       <Stack.Screen name="Allergy-relief-guide" options={{ title: "ความช่วยเหลือฉุกเฉิน" }} />
     </Stack>

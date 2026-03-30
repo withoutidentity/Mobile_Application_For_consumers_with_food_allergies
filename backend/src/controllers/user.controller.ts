@@ -40,6 +40,56 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
   return res.json(userWithAllergies);
 };
 
+export const updateMyProfile = async (req: AuthRequest, res: Response) => {
+  const user = req.user;
+  const { name, emergencyContact, dietaryRestrictions } = req.body as {
+    name?: string;
+    emergencyContact?: string | null;
+    dietaryRestrictions?: string[];
+  };
+
+  if (!user) {
+    return res.status(401).json({ message: 'Unauthorized: User not found in request' });
+  }
+
+  if (!name?.trim()) {
+    return res.status(400).json({ message: 'Name is required' });
+  }
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        name: name.trim(),
+        emergencyContact: emergencyContact?.trim() || null,
+        dietaryRestrictions: Array.isArray(dietaryRestrictions)
+          ? dietaryRestrictions
+              .map((item) => (typeof item === 'string' ? item.trim() : ''))
+              .filter(Boolean)
+          : undefined,
+      },
+      include: {
+        allergies: {
+          select: {
+            severity: true,
+            allergen: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.json(updatedUser);
+  } catch (error) {
+    console.error('Failed to update profile:', error);
+    return res.status(500).json({ message: 'Internal server error while updating profile' });
+  }
+};
+
 /**
  * @desc    Update user allergens
  * @route   PUT /api/users/me/allergies

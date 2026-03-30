@@ -77,6 +77,24 @@ export const updateUserAllergens = async (
   await apiClient.put('/users/me/allergies', { allergies });
 };
 
+export const updateMyProfile = async (payload: {
+  name: string;
+  emergencyContact?: string;
+  dietaryRestrictions: string[];
+}): Promise<UserProfile> => {
+  const response = await apiClient.put<BackendUser>('/users/me', payload);
+  const user = response.data;
+
+  return {
+    name: user.name,
+    role: user.role,
+    email: user.email,
+    emergencyContact: user.emergencyContact || undefined,
+    dietaryRestrictions: user.dietaryRestrictions,
+    allergens: user.allergies.map((a) => ({ allergenId: a.allergen.id, severity: a.severity })),
+  };
+};
+
 export const addScanToHistory = async (productId: number): Promise<void> => {
   try {
     await apiClient.post('/users/me/history', { productId });
