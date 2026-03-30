@@ -11,11 +11,9 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { Allergen, Severity } from "@/types";
 
 export default function AllergenProfileScreen() {
-  const router = useRouter();
   const { profile, updateAllergen, removeAllergen } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -51,6 +49,12 @@ export default function AllergenProfileScreen() {
 
   const handleSeverityChange = (allergenId: number, severity: Severity) => {
     updateAllergen(allergenId, severity);
+    if (pendingSelection === allergenId) {
+      setPendingSelection(null);
+    }
+  };
+
+  const handleDismissPendingSelection = (allergenId: number) => {
     if (pendingSelection === allergenId) {
       setPendingSelection(null);
     }
@@ -109,7 +113,8 @@ export default function AllergenProfileScreen() {
         <View className="mt-2">
           {filteredAllergens.map((allergen) => {
             const userAllergy = profile?.allergens.find(a => a.allergenId === allergen.id);
-            const isSelected = !!userAllergy || pendingSelection === allergen.id;
+            const isPendingSelection = pendingSelection === allergen.id;
+            const isSelected = !!userAllergy || isPendingSelection;
             const currentSeverity = userAllergy?.severity || 'MEDIUM'; 
             return (
               <AllergenCard
@@ -117,10 +122,13 @@ export default function AllergenProfileScreen() {
                 allergen={allergen}
                 selected={isSelected}
                 severity={currentSeverity}
+                autoOpenSeverityModal={isPendingSelection}
+                isPendingSelection={isPendingSelection}
                 onToggle={() => {
                   handleToggleAllergen(allergen.id, !!userAllergy);
                 }}
                 onSeverityChange={(severity) => handleSeverityChange(allergen.id, severity)}
+                onDismissPendingSelection={() => handleDismissPendingSelection(allergen.id)}
               />
             );
           })}
@@ -128,7 +136,7 @@ export default function AllergenProfileScreen() {
           {filteredAllergens.length === 0 && (
             <View className="p-6 items-center">
               <Text className="text-base text-gray-400 text-center">
-                ไม่พบสารก่อภูมิแพ้ที่ตรงกับ "{searchQuery}"
+                ไม่พบสารก่อภูมิแพ้ที่ตรงกับ &quot;{searchQuery}&quot;
               </Text>
             </View>
           )}

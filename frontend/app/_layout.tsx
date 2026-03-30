@@ -115,6 +115,9 @@ function RootLayoutNav() {
       <Stack.Screen name="forbidden" options={{ title: "ไม่มีสิทธิ์เข้าถึง" }} />
       <Stack.Screen name="symptom/[allergen]" options={{ title: "รายละเอียดอาการแพ้" }} />
       <Stack.Screen name="product/[id]" options={{ title: "รายละเอียดสินค้า" }} />
+      <Stack.Screen name="user-profile" options={{ title: "รายละเอียดโปรไฟล์" }} />
+      <Stack.Screen name="allergen-profile" options={{ title: "สารก่อภูมิแพ้ของฉัน" }} />
+      <Stack.Screen name="Allergy-relief-guide" options={{ title: "ความช่วยเหลือฉุกเฉิน" }} />
     </Stack>
   );
 }

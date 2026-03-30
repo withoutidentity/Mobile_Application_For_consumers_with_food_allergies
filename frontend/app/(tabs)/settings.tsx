@@ -74,7 +74,7 @@ export default function SettingsScreen() {
         )}
       </View>
 
-      {/* Notifications */}
+      {/* Notifications
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
         <Text className="text-lg font-semibold text-[#333333] mb-4">
           การแจ้งเตือน
@@ -93,7 +93,7 @@ export default function SettingsScreen() {
             thumbColor="#fff"
           />
         </View>
-      </View>
+      </View> */}
 
       {/* Emergency Contact */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">

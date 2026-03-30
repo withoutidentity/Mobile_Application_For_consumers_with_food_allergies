@@ -2,15 +2,18 @@ import Colors from '@/constants/Colors';
 import { Allergen, Severity } from '@/types';
 import { getAllergenDisplayName, getLocalizedAliasNames } from '@/utils/allergenLocalization';
 import { AlertCircle, Check } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface AllergenCardProps {
   allergen: Allergen;
   selected: boolean;
   severity?: Severity;
+  autoOpenSeverityModal?: boolean;
+  isPendingSelection?: boolean;
   onToggle: () => void;
   onSeverityChange: (severity: Severity) => void;
+  onDismissPendingSelection?: () => void;
 }
 
 const severityOptions: { label: string; value: Severity }[] = [
@@ -19,15 +22,38 @@ const severityOptions: { label: string; value: Severity }[] = [
   { label: 'สูง', value: 'HIGH' },
 ];
 
-export default function AllergenCard({ allergen, selected, severity, onToggle, onSeverityChange }: AllergenCardProps) {
+export default function AllergenCard({
+  allergen,
+  selected,
+  severity,
+  autoOpenSeverityModal = false,
+  isPendingSelection = false,
+  onToggle,
+  onSeverityChange,
+  onDismissPendingSelection,
+}: AllergenCardProps) {
   const [isSeverityModalVisible, setIsSeverityModalVisible] = useState(false);
   const selectedSeverityLabel =
     severityOptions.find((option) => option.value === severity)?.label ?? 'ปานกลาง';
   const localizedAliases = getLocalizedAliasNames(allergen);
 
+  useEffect(() => {
+    if (autoOpenSeverityModal) {
+      setIsSeverityModalVisible(true);
+    }
+  }, [autoOpenSeverityModal]);
+
   const handleSelectSeverity = (value: Severity) => {
     onSeverityChange(value);
     setIsSeverityModalVisible(false);
+  };
+
+  const handleCloseSeverityModal = () => {
+    setIsSeverityModalVisible(false);
+
+    if (isPendingSelection) {
+      onDismissPendingSelection?.();
+    }
   };
 
   return (
@@ -88,11 +114,11 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
         animationType="fade"
         transparent
         visible={isSeverityModalVisible}
-        onRequestClose={() => setIsSeverityModalVisible(false)}
+        onRequestClose={handleCloseSeverityModal}
       >
         <Pressable
           style={styles.modalOverlay}
-          onPress={() => setIsSeverityModalVisible(false)}
+          onPress={handleCloseSeverityModal}
         >
           <Pressable style={styles.modalCard} onPress={() => undefined}>
             <Text style={styles.modalTitle}>เลือกระดับความรุนแรง</Text>
@@ -124,7 +150,7 @@ export default function AllergenCard({ allergen, selected, severity, onToggle, o
 
             <Pressable
               style={styles.modalCancelButton}
-              onPress={() => setIsSeverityModalVisible(false)}
+              onPress={handleCloseSeverityModal}
             >
               <Text style={styles.modalCancelText}>ยกเลิก</Text>
             </Pressable>

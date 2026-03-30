@@ -186,11 +186,11 @@ export default function AdminProductsScreen() {
           headerTintColor: '#fff',
           headerTitleAlign: 'left',
           headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.push('/(tabs)/admin')} style={{ marginLeft: 5 }}>
-              <ArrowLeft size={24} color="#fff" />
-            </TouchableOpacity>
-          ),
+          // headerLeft: () => (
+          //   <TouchableOpacity onPress={() => router.push('/(tabs)/admin')} style={{ marginLeft: 5 }}>
+          //     <ArrowLeft size={24} color="#fff" />
+          //   </TouchableOpacity>
+          // ),
           headerRight: () => (
             <TouchableOpacity onPress={handleOpenAdd}>
               <Plus size={24} color="#fff" style={{ marginRight: 10 }} />
