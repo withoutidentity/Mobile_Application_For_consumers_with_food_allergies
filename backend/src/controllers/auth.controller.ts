@@ -175,7 +175,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(200).json({ message: "If the email exists, a reset code has been sent" });
+      return res.status(404).json({ message: "ไม่พบอีเมลในระบบ" });
     }
 
     const code = generateResetCode();
@@ -205,7 +205,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: emailSent
-        ? "If the email exists, a reset code has been sent"
+        ? "A reset code has been sent"
         : "Reset code generated. Configure SMTP to send real emails.",
     });
   } catch (error) {
