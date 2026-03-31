@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import SafetyBadge from './SafetyBadge';
+import { resolveProductImageUri } from '@/utils/productImage';
 
 interface ProductCardProps {
   product: Product;
@@ -23,11 +24,13 @@ export default function ProductCard({ product, allAllergens }: ProductCardProps)
     router.push(`/product/${product.id}`);
   };
 
+  const imageUri = resolveProductImageUri(product.image);
+
   return (
     <Pressable style={styles.container} onPress={handlePress}>
       <View style={styles.imageContainer}>
-        {product.image ? (
-          <Image source={{ uri: product.image }} style={styles.image} />
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
           <View style={styles.placeholderImage} />
         )}

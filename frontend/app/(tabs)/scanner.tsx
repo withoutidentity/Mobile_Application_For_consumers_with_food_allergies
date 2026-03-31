@@ -188,24 +188,31 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent',
   },
   topSection: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 60,
+    paddingHorizontal: 24,
   },
   mainTitle: {
     color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.8)',
+    color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   scanFrame: {
     width: '85%',
@@ -290,6 +297,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 60,
+    paddingHorizontal: 24,
   },
   statusContainer: {
     backgroundColor: 'rgba(79, 209, 197, 0.9)',

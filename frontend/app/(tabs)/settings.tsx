@@ -31,7 +31,24 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    removeToken();
+    Alert.alert(
+      "ยืนยันการออกจากระบบ",
+      "คุณแน่ใจว่าต้องการออกจากระบบใช่หรือไม่?",
+      [
+        {
+          text: "ยกเลิก",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "ออกจากระบบ",
+          onPress: () => {
+            removeToken();
+          },
+          style: "destructive",
+        },
+      ]
+    );
   };
 
   return (

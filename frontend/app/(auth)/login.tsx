@@ -110,10 +110,6 @@ export default function LoginScreen() {
           )}
         </View>
 
-        <Pressable onPress={() => router.push("/forgot-password-email")}>
-          <Text className="text-primary text-center">ลืมรหัสผ่าน?</Text>
-        </Pressable>
-
         {errors.general && (
           <Text className="text-red-500 mb-3 mt-4">{errors.general}</Text>
         )}
@@ -130,6 +126,10 @@ export default function LoginScreen() {
           ) : (
             <Text className="text-white font-bold text-center">เข้าสู่ระบบ</Text>
           )}
+        </Pressable>
+
+        <Pressable onPress={() => router.push("/forgot-password-email")}>
+          <Text className="text-primary text-center mt-2">ลืมรหัสผ่าน?</Text>
         </Pressable>
 
         <Pressable onPress={() => router.push("/register")}>

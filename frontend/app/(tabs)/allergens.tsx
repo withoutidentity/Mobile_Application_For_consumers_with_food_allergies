@@ -316,21 +316,23 @@ export default function AdminAllergensScreen() {
           </View>
 
           <ScrollView className="flex-1 p-4">
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ชื่อสารก่อภูมิแพ้ *</Text>
+            <Text className="text-base font-semibold mb-2 mt-3">ชื่อสารก่อภูมิแพ้ *</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.name}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
               placeholder="เช่น นมวัว, ถั่วลิสง"
+              placeholderTextColor="#999"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">รายละเอียด</Text>
+            <Text className="text-base font-semibold  mb-2 mt-3">รายละเอียด</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200 min-h-[80px]"
               textAlignVertical="top"
               value={formData.description}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, description: text }))}
               placeholder="คำอธิบายแบบย่อ"
+              placeholderTextColor="#999"
               multiline
               numberOfLines={3}
             />
@@ -343,6 +345,7 @@ export default function AdminAllergensScreen() {
               value={formData.altNames}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, altNames: text }))}
               placeholder="เช่น Casein, Whey Protein"
+              placeholderTextColor="#999"
             />
 
             <Text className="text-base font-semibold text-gray-900 mb-2 mt-4">
@@ -354,6 +357,7 @@ export default function AdminAllergensScreen() {
               value={formData.whenToSeekHelp}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, whenToSeekHelp: text }))}
               placeholder="หนึ่งข้อ ต่อหนึ่งบรรทัด"
+              placeholderTextColor="#999"
               multiline
               numberOfLines={5}
             />
@@ -364,7 +368,7 @@ export default function AdminAllergensScreen() {
                   <Text className="text-white font-semibold">ระดับ{getSeverityLabel(severity)}</Text>
                 </View>
 
-                <Text className="text-base font-semibold text-gray-900 mb-2">อาการ</Text>
+                <Text className="text-base font-semibold mb-2">อาการ</Text>
                 <TextInput
                   className="bg-white rounded-lg p-3 text-base border border-gray-200 min-h-[110px]"
                   textAlignVertical="top"
@@ -379,11 +383,12 @@ export default function AdminAllergensScreen() {
                     }))
                   }
                   placeholder="หนึ่งข้อ ต่อหนึ่งบรรทัด"
+                  placeholderTextColor="#999"
                   multiline
                   numberOfLines={5}
                 />
 
-                <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">การปฐมพยาบาลเบื้องต้น</Text>
+                <Text className="text-base font-semibold mb-2 mt-3">การปฐมพยาบาลเบื้องต้น</Text>
                 <TextInput
                   className="bg-white rounded-lg p-3 text-base border border-gray-200 min-h-[110px]"
                   textAlignVertical="top"
@@ -398,6 +403,7 @@ export default function AdminAllergensScreen() {
                     }))
                   }
                   placeholder="หนึ่งข้อ ต่อหนึ่งบรรทัด"
+                  placeholderTextColor="#999"
                   multiline
                   numberOfLines={5}
                 />

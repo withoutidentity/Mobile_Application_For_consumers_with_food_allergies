@@ -151,6 +151,29 @@ export const buildConsultationPrompt = (message: string) =>
     "ถ้าคำถามดูเหมือนถามถึงสินค้าเฉพาะ แต่ยังไม่มีข้อมูลสินค้า ให้ขอข้อมูลเพิ่ม เช่น บาร์โค้ดหรือชื่อสินค้าให้ชัดเจน",
   ].join("\n");
 
+export const isGreetingMessage = (message: string) => {
+  const normalized = normalizeText(message);
+  const greetings = [
+    "สวัสดี",
+    "สวัสดีครับ",
+    "สวัสดีค่ะ",
+    "หวัดดี",
+    "หวัดดีครับ",
+    "หวัดดีค่ะ",
+    "hello",
+    "hi",
+  ];
+
+  return greetings.some((greeting) => normalized === normalizeText(greeting));
+};
+
+export const buildGreetingReply = () =>
+  [
+    "สวัสดี ฉันช่วยให้คำปรึกษาทั่วไปเกี่ยวกับการหลีกเลี่ยงสารก่อภูมิแพ้ได้",
+    "ถ้าต้องการให้ช่วยประเมินสินค้า คุณส่งชื่อสินค้าหรือบาร์โค้ดมาได้เลย",
+    "หรือถ้ามีข้อสงสัยเรื่องการหลีกเลี่ยงสารก่อภูมิแพ้ ก็ถามต่อได้ทันที",
+  ].join("\n");
+
 export const isListRequest = (message: string) => {
   const patterns = [
     /มีสินค้าไหนบ้าง/i,

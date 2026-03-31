@@ -129,13 +129,13 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
     }
 
     const accessToken = signAccessToken(user.id);

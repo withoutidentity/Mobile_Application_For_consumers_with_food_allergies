@@ -5,9 +5,11 @@ import {
   buildConsultFallback,
   buildConsultationPrompt,
   buildFallbackReply,
+  buildGreetingReply,
   buildGeminiPrompt,
   buildRuleResult,
   extractProductNameFromMessage,
+  isGreetingMessage,
 } from "./chatSafety";
 
 type ChatRequest = {
@@ -172,6 +174,13 @@ export const ChatService = {
     let product: ProductLookup | undefined;
     const trimmed = message.trim();
     const productName = extractProductNameFromMessage(message);
+
+    if (isGreetingMessage(trimmed)) {
+      return {
+        mode: "CONSULT",
+        reply: buildGreetingReply(),
+      };
+    }
 
     if (barcode) {
       const localProduct = await fetchProductFromDb(barcode);

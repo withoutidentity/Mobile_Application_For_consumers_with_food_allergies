@@ -10,12 +10,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, router } from 'expo-router';
-import { ArrowLeft, Check, ChevronDown, Edit2, Plus, Trash2, X } from 'lucide-react-native';
+import { Stack } from 'expo-router';
+import { Check, ChevronDown, Edit2, ImagePlus, Plus, Trash2, X } from 'lucide-react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 import Colors from '@/constants/Colors';
 import { Product } from '@/types';
-import { createProduct, deleteProduct, getProducts, updateProduct } from '@/data/productService';
+import { ProductPayload, createProduct, deleteProduct, getProducts, updateProduct } from '@/data/productService';
 import { fetchAllergens } from '@/data/allergenService';
 import { getAllergenDisplayName, getLocalizedAliasNames } from '@/utils/allergenLocalization';
 
@@ -25,7 +26,9 @@ type ProductFormData = {
   brand: string;
   ingredients: string;
   allergenWarningIds: number[];
-  image: string;
+  imageUri: string;
+  imageFile: ProductPayload['imageFile'];
+  removeImage: boolean;
 };
 
 const emptyForm = (): ProductFormData => ({
@@ -34,7 +37,9 @@ const emptyForm = (): ProductFormData => ({
   barcode: '',
   ingredients: '',
   allergenWarningIds: [],
-  image: '',
+  imageUri: '',
+  imageFile: null,
+  removeImage: false,
 });
 
 export default function AdminProductsScreen() {
@@ -100,7 +105,9 @@ export default function AdminProductsScreen() {
       allergenWarningIds: product.allergenWarnings
         .map((warning) => allergenLookup.get(warning.toLowerCase()))
         .filter((id): id is number => typeof id === 'number'),
-      image: product.image || '',
+      imageUri: product.image || '',
+      imageFile: null,
+      removeImage: false,
     });
     setModalVisible(true);
   };
@@ -114,13 +121,55 @@ export default function AdminProductsScreen() {
     }));
   };
 
+  const handlePickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('ต้องอนุญาตการเข้าถึงรูปภาพ', 'กรุณาอนุญาตให้แอปเข้าถึงคลังรูปเพื่อเลือกรูปสินค้า');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 0.85,
+    });
+
+    if (result.canceled || !result.assets.length) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    const fileName = asset.fileName ?? `product-${Date.now()}.jpg`;
+
+    setFormData((prev) => ({
+      ...prev,
+      imageUri: asset.uri,
+      imageFile: {
+        uri: asset.uri,
+        name: fileName,
+        type: asset.mimeType ?? 'image/jpeg',
+      },
+      removeImage: false,
+    }));
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      imageUri: '',
+      imageFile: null,
+      removeImage: Boolean(editingProduct?.image),
+    }));
+  };
+
   const handleSave = () => {
     if (!formData.name.trim() || !formData.barcode.trim()) {
       Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อสินค้าและบาร์โค้ด');
       return;
     }
 
-    const payload = {
+    const payload: ProductPayload = {
       name: formData.name.trim(),
       brand: formData.brand.trim(),
       barcode: formData.barcode.trim(),
@@ -129,7 +178,8 @@ export default function AdminProductsScreen() {
         .map((item) => item.trim())
         .filter(Boolean),
       allergenWarningIds: formData.allergenWarningIds,
-      image: formData.image.trim() || undefined,
+      imageFile: formData.imageFile,
+      removeImage: formData.removeImage,
     };
 
     if (editingProduct) {
@@ -166,7 +216,7 @@ export default function AdminProductsScreen() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: any }) => updateProduct(id, payload),
+    mutationFn: ({ id, payload }: { id: number; payload: ProductPayload }) => updateProduct(id, payload),
     ...commonMutationOptions,
   });
 
@@ -186,11 +236,6 @@ export default function AdminProductsScreen() {
           headerTintColor: '#fff',
           headerTitleAlign: 'left',
           headerShadowVisible: false,
-          // headerLeft: () => (
-          //   <TouchableOpacity onPress={() => router.push('/(tabs)/admin')} style={{ marginLeft: 5 }}>
-          //     <ArrowLeft size={24} color="#fff" />
-          //   </TouchableOpacity>
-          // ),
           headerRight: () => (
             <TouchableOpacity onPress={handleOpenAdd}>
               <Plus size={24} color="#fff" style={{ marginRight: 10 }} />
@@ -264,38 +309,42 @@ export default function AdminProductsScreen() {
           </View>
 
           <ScrollView className="flex-1 p-4">
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ชื่อผลิตภัณฑ์</Text>
+            <Text className="text-base font-semibold mb-2 mt-3">ชื่อผลิตภัณฑ์</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.name}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
               placeholder="เช่น คุกกี้ช็อกโกแลตชิพ"
+              placeholderTextColor="#999"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">แบรนด์/ยี่ห้อ</Text>
+            <Text className="text-base font-semibold mb-2 mt-3">แบรนด์/ยี่ห้อ</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.brand}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, brand: text }))}
               placeholder="เช่น Sweet Treats"
+              placeholderTextColor="#999"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">บาร์โค้ด</Text>
+            <Text className="text-base font-semibold mb-2 mt-3">บาร์โค้ด</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
               value={formData.barcode}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, barcode: text }))}
               placeholder="เช่น 1234567890123"
+              placeholderTextColor="#999"
               keyboardType="numeric"
             />
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">ส่วนผสม (หนึ่งอย่างต่อบรรทัด)</Text>
+            <Text className="text-base font-semibold mb-2 mt-3">ส่วนผสม (หนึ่งอย่างต่อบรรทัด)</Text>
             <TextInput
               className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200 min-h-[120px]"
               textAlignVertical="top"
               value={formData.ingredients}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, ingredients: text }))}
-              placeholder="แป้งสาลี&#10;น้ำตาล&#10;เนย"
+              placeholder={'แป้งสาลี\nน้ำตาล\nเนย'}
+              placeholderTextColor="#999"
               multiline
               numberOfLines={6}
             />
@@ -355,16 +404,29 @@ export default function AdminProductsScreen() {
               </View>
             )}
 
-            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">URL รูปภาพ</Text>
-            <TextInput
-              className="bg-gray-50 rounded-lg p-3 text-base border border-gray-200"
-              value={formData.image}
-              onChangeText={(text) => setFormData((prev) => ({ ...prev, image: text }))}
-              placeholder="https://..."
-              autoCapitalize="none"
-            />
-            {formData.image ? (
-              <Image source={{ uri: formData.image }} className="w-full h-52 rounded-lg mt-3" resizeMode="cover" />
+            <Text className="text-base font-semibold text-gray-900 mb-2 mt-3">รูปสินค้า</Text>
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                className="flex-1 rounded-lg px-4 py-3 border border-gray-200 bg-gray-50 flex-row items-center justify-center gap-2"
+                onPress={handlePickImage}
+              >
+                <ImagePlus size={18} color={Colors.primary} />
+                <Text className="text-base font-medium" style={{ color: Colors.primary }}>
+                  เลือกรูปจากเครื่อง
+                </Text>
+              </TouchableOpacity>
+              {formData.imageUri ? (
+                <TouchableOpacity
+                  className="rounded-lg px-4 py-3 border border-red-200 bg-red-50 items-center justify-center"
+                  onPress={handleRemoveImage}
+                >
+                  <Text className="text-sm font-medium text-red-500">ลบรูป</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <Text className="text-xs text-gray-400 mt-2">รองรับไฟล์ JPG, PNG และ WEBP ขนาดไม่เกิน 5 MB</Text>
+            {formData.imageUri ? (
+              <Image source={{ uri: formData.imageUri }} className="w-full h-52 rounded-lg mt-3" resizeMode="cover" />
             ) : null}
           </ScrollView>
 

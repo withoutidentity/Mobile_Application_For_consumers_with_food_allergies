@@ -1,6 +1,7 @@
 import { Product, UserProfile } from '@/types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resolveProductImageUri } from '@/utils/productImage';
  
 const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
 
@@ -117,7 +118,7 @@ export const getScanHistory = async (): Promise<Product[]> => {
       return {
         ...product,
         id: product.id,
-        image: product.imageUrl,
+        image: resolveProductImageUri(product.imageUrl),
         allergenWarnings: allergenWarnings,
       };
     });
