@@ -15,7 +15,7 @@ export type ChatResponse =
       matchedAllergens: string[];
       reply: string;
       product: {
-        source: "LOCAL" | "OFF" | "NONE";
+        source: "LOCAL" | "NONE";
         barcode?: string;
         name?: string;
         brand?: string;

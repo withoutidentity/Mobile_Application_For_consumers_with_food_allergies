@@ -7,7 +7,7 @@ export type AllergenTerm = {
 };
 
 export type ProductLookup = {
-  source: "LOCAL" | "OFF" | "NONE";
+  source: "LOCAL" | "NONE";
   barcode?: string;
   name?: string;
   brand?: string;
