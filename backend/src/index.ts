@@ -8,6 +8,8 @@ import productRoutes from "./routes/product.routes";
 import allergenRoutes from './routes/allergen.routes';
 import userRoutes from './routes/user.routes';
 import chatRoutes from './routes/chat.routes';
+import path from 'path';
+import { ensureUploadsRootDir } from './utils/productImage';
 
 const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
 dotenv.config({ path: envFile });
@@ -19,6 +21,8 @@ const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
 app.use(cors());
 app.use(express.json());
+ensureUploadsRootDir();
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 const server = http.createServer(app);
 

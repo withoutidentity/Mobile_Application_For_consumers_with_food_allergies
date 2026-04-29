@@ -1,17 +1,19 @@
 import Button from '@/components/Button';
 import Colors from '@/constants/Colors';
-import getProducts from '@/data/productService';
+import fetchProducts from '@/data/productService';
 import { findProductByBarcode } from '@/utils/productAnalyzer';
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { AlertCircle } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [scanned, setScanned] = useState(false);
+  const isNavigatingRef = useRef(false);
+  const lastScanRef = useRef<{ code: string; at: number } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,18 +22,39 @@ export default function ScannerScreen() {
     }
   }, [permission, requestPermission]);
 
+  useEffect(() => {
+    return () => {
+      isNavigatingRef.current = false;
+    };
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setScanned(false);
+      isNavigatingRef.current = false;
+      return undefined;
+    }, [])
+  );
+
   const handleBarCodeScanned = async ({ data }: BarcodeScanningResult) => {
-    if (scanned) return;
-    
+    const now = Date.now();
+    const lastScan = lastScanRef.current;
+
+    if (scanned || isNavigatingRef.current) return;
+    if (lastScan && lastScan.code === data && now - lastScan.at < 1000) return;
+
+    lastScanRef.current = { code: data, at: now };
     setScanned(true);
-    
+    isNavigatingRef.current = true;
+
     try {
-      const products = await getProducts();
+      const products = await fetchProducts();
       const product = findProductByBarcode(data, products);
-      
+
       if (product) {
         router.push(`/product/${product.id}`);
       } else {
+        isNavigatingRef.current = false;
         Alert.alert(
           'ไม่พบสินค้า',
           'ไม่พบสินค้านี้ในฐานข้อมูล กรุณาลองสแกนสินค้าอื่น',
@@ -44,14 +67,21 @@ export default function ScannerScreen() {
         );
       }
     } catch (error) {
+      isNavigatingRef.current = false;
       console.error('Failed to load products', error);
       Alert.alert(
         'เกิดข้อผิดพลาด',
         'ไม่สามารถโหลดข้อมูลสินค้าได้ กรุณาลองใหม่อีกครั้งภายหลัง',
+        [
+          {
+            text: 'ตกลง',
+            onPress: () => setScanned(false),
+          },
+        ]
       );
-    };
-  }
-  
+    }
+  };
+
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   };
@@ -98,11 +128,11 @@ export default function ScannerScreen() {
             <View style={styles.cornerBottomLeft} />
             <View style={styles.cornerBottomRight} />
           </View>
-          
+
           <Text style={styles.instructions}>
             วางบาร์โค้ดให้อยู่ภายในกรอบเพื่อสแกน
           </Text>
-          
+
           <View style={styles.buttonContainer}>
             <Button
               title="สลับกล้อง"
@@ -110,8 +140,8 @@ export default function ScannerScreen() {
               variant="outline"
               style={styles.flipButton}
             />
-            
-            {scanned && (
+
+            {scanned && !isNavigatingRef.current && (
               <Button
                 title="สแกนอีกครั้ง"
                 onPress={() => setScanned(false)}
@@ -216,13 +246,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
   },
   text: {
     fontSize: 16,

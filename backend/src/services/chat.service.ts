@@ -5,9 +5,11 @@ import {
   buildConsultFallback,
   buildConsultationPrompt,
   buildFallbackReply,
+  buildGreetingReply,
   buildGeminiPrompt,
   buildRuleResult,
   extractProductNameFromMessage,
+  isGreetingMessage,
 } from "./chatSafety";
 
 type ChatRequest = {
@@ -17,8 +19,6 @@ type ChatRequest = {
 };
 
 const prisma = new PrismaClient();
-const OFF_BASE_URL = "https://world.openfoodfacts.org/api/v2/product";
-
 const callGemini = async (prompt: string) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
@@ -88,26 +88,6 @@ const fetchProductFromDb = async (barcode: string): Promise<ProductLookup | null
   };
 };
 
-const fetchProductFromOff = async (barcode: string): Promise<ProductLookup | null> => {
-  const url = `${OFF_BASE_URL}/${barcode}.json?fields=product_name,brands,ingredients_text_th,ingredients_text,allergens_tags,traces_tags`;
-  const response = await fetch(url);
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  if (!data || data.status !== 1 || !data.product) return null;
-
-  const product = data.product;
-  return {
-    source: "OFF",
-    barcode,
-    name: product.product_name || undefined,
-    brand: product.brands || undefined,
-    ingredientsText: product.ingredients_text_th || product.ingredients_text || undefined,
-    allergensTags: Array.isArray(product.allergens_tags) ? product.allergens_tags : [],
-    tracesTags: Array.isArray(product.traces_tags) ? product.traces_tags : [],
-  };
-};
-
 const fetchProductByNameFromDb = async (name: string): Promise<ProductLookup | null> => {
   const product = await prisma.product.findFirst({
     where: { name: { contains: name, mode: "insensitive" } },
@@ -136,27 +116,6 @@ const fetchProductByNameFromDb = async (name: string): Promise<ProductLookup | n
   };
 };
 
-const fetchProductByNameFromOff = async (name: string): Promise<ProductLookup | null> => {
-  const query = encodeURIComponent(name);
-  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&page_size=1`;
-  const response = await fetch(url);
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  const product = data?.products?.[0];
-  if (!product) return null;
-
-  return {
-    source: "OFF",
-    barcode: product.code || undefined,
-    name: product.product_name || undefined,
-    brand: product.brands || undefined,
-    ingredientsText: product.ingredients_text_th || product.ingredients_text || undefined,
-    allergensTags: Array.isArray(product.allergens_tags) ? product.allergens_tags : [],
-    tracesTags: Array.isArray(product.traces_tags) ? product.traces_tags : [],
-  };
-};
-
 export const ChatService = {
   async handleChat(request: ChatRequest) {
     const { message, barcode, userAllergenIds } = request;
@@ -173,17 +132,21 @@ export const ChatService = {
     const trimmed = message.trim();
     const productName = extractProductNameFromMessage(message);
 
+    if (isGreetingMessage(trimmed)) {
+      return {
+        mode: "CONSULT",
+        reply: buildGreetingReply(),
+      };
+    }
+
     if (barcode) {
-      const localProduct = await fetchProductFromDb(barcode);
-      product = localProduct ?? (await fetchProductFromOff(barcode)) ?? undefined;
+      product = (await fetchProductFromDb(barcode)) ?? undefined;
     }
 
     if (!product && productName.length > 2) {
-      const localByName = await fetchProductByNameFromDb(productName);
-      product = localByName ?? (await fetchProductByNameFromOff(productName)) ?? undefined;
+      product = (await fetchProductByNameFromDb(productName)) ?? undefined;
     } else if (!product && trimmed.length > 2) {
-      const localByName = await fetchProductByNameFromDb(trimmed);
-      product = localByName ?? (await fetchProductByNameFromOff(trimmed)) ?? undefined;
+      product = (await fetchProductByNameFromDb(trimmed)) ?? undefined;
     }
 
     const rule = buildRuleResult(

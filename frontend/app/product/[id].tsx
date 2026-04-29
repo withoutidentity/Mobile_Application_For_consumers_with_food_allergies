@@ -16,6 +16,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { resolveProductImageUri } from '@/utils/productImage';
 
 export default function ProductDetailScreen() {
   const { id: idFromParams } = useLocalSearchParams<{ id: string }>();
@@ -63,6 +64,7 @@ export default function ProductDetailScreen() {
   }
 
   const analysis = analyzeProduct(product, profile, allAllergens);
+  const imageUri = resolveProductImageUri(product.image);
 
   const getMatchedAllergenNames = () =>
     analysis.directMatches.map((allergen) => getAllergenDisplayName(allergen));
@@ -76,8 +78,8 @@ export default function ProductDetailScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.imageContainer}>
-        {product.image ? (
-          <Image source={{ uri: product.image }} style={styles.image} />
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
           <View style={styles.placeholderImage} />
         )}
@@ -191,7 +193,7 @@ export default function ProductDetailScreen() {
         </View>
       </View>
 
-      <View style={styles.actionButtons}>
+      {/* <View style={styles.actionButtons}>
         <Button
           title="ค้นหาสินค้าทางเลือก"
           onPress={handleFindAlternatives}
@@ -199,7 +201,7 @@ export default function ProductDetailScreen() {
           fullWidth
           style={styles.actionButton}
         />
-      </View>
+      </View> */}
     </ScrollView>
   );
 }

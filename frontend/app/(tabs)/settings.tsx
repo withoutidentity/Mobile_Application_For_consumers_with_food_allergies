@@ -31,7 +31,24 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    removeToken();
+    Alert.alert(
+      "ยืนยันการออกจากระบบ",
+      "คุณแน่ใจว่าต้องการออกจากระบบใช่หรือไม่?",
+      [
+        {
+          text: "ยกเลิก",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "ออกจากระบบ",
+          onPress: () => {
+            removeToken();
+          },
+          style: "destructive",
+        },
+      ]
+    );
   };
 
   return (
@@ -74,7 +91,7 @@ export default function SettingsScreen() {
         )}
       </View>
 
-      {/* Notifications */}
+      {/* Notifications
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">
         <Text className="text-lg font-semibold text-[#333333] mb-4">
           การแจ้งเตือน
@@ -93,7 +110,7 @@ export default function SettingsScreen() {
             thumbColor="#fff"
           />
         </View>
-      </View>
+      </View> */}
 
       {/* Emergency Contact */}
       <View className="mb-6 bg-white rounded-xl p-4 shadow-sm">

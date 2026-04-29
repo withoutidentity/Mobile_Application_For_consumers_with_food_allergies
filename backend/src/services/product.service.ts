@@ -1,4 +1,5 @@
 import { PrismaClient } from '../generated/prisma';
+import { deleteProductImageFile } from '../utils/productImage';
 
 const prisma = new PrismaClient();
 
@@ -8,6 +9,7 @@ export type ProductCreateInput = {
   barcode: string;
   ingredients: string[];
   image?: string;
+  removeImage?: boolean;
   allergenWarnings?: string[];
   allergenWarningIds?: number[];
 };
@@ -76,7 +78,7 @@ export const ProductService = {
   },
 
   async create(data: ProductCreateInput) {
-    const { image: imageUrl, allergenWarnings, allergenWarningIds, ...productData } = data;
+    const { image: imageUrl, allergenWarnings, allergenWarningIds, removeImage, ...productData } = data;
     const resolvedAllergenIds = await resolveAllergenIds({ allergenWarnings, allergenWarningIds });
 
     return prisma.product.create({
@@ -100,7 +102,17 @@ export const ProductService = {
   },
 
   async update(id: number, data: ProductUpdateInput) {
-    const { image: imageUrl, barcode, allergenWarnings, allergenWarningIds, ...productData } = data;
+    const { image: imageUrl, barcode, allergenWarnings, allergenWarningIds, removeImage, ...productData } = data;
+    const currentProduct = await prisma.product.findUnique({
+      where: { id },
+      select: { imageUrl: true },
+    });
+
+    if (!currentProduct) {
+      return null;
+    }
+
+    const nextImageUrl = imageUrl !== undefined ? imageUrl : removeImage ? null : undefined;
 
     if (allergenWarnings !== undefined || allergenWarningIds !== undefined) {
       const resolvedAllergenIds = await resolveAllergenIds({ allergenWarnings, allergenWarningIds });
@@ -109,11 +121,11 @@ export const ProductService = {
         where: { productId: id },
       });
 
-      return prisma.product.update({
+      const updatedProduct = await prisma.product.update({
         where: { id },
         data: {
           ...productData,
-          imageUrl,
+          ...(nextImageUrl !== undefined ? { imageUrl: nextImageUrl } : {}),
           allergens: {
             create: resolvedAllergenIds.map((allergenId) => ({
               allergen: { connect: { id: allergenId } },
@@ -128,13 +140,22 @@ export const ProductService = {
           },
         },
       });
+
+      if (
+        currentProduct.imageUrl &&
+        (removeImage || (imageUrl !== undefined && imageUrl !== currentProduct.imageUrl))
+      ) {
+        await deleteProductImageFile(currentProduct.imageUrl);
+      }
+
+      return updatedProduct;
     }
 
-    return prisma.product.update({
+    const updatedProduct = await prisma.product.update({
       where: { id },
       data: {
         ...productData,
-        imageUrl,
+        ...(nextImageUrl !== undefined ? { imageUrl: nextImageUrl } : {}),
       },
       include: {
         allergens: {
@@ -144,11 +165,23 @@ export const ProductService = {
         },
       },
     });
+
+    if (
+      currentProduct.imageUrl &&
+      (removeImage || (imageUrl !== undefined && imageUrl !== currentProduct.imageUrl))
+    ) {
+      await deleteProductImageFile(currentProduct.imageUrl);
+    }
+
+    return updatedProduct;
   },
 
   async remove(id: number) {
-    return prisma.product.delete({
+    const deletedProduct = await prisma.product.delete({
       where: { id },
     });
+
+    await deleteProductImageFile(deletedProduct.imageUrl);
+    return deletedProduct;
   },
 };

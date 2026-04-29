@@ -15,7 +15,7 @@ export type ChatResponse =
       matchedAllergens: string[];
       reply: string;
       product: {
-        source: "LOCAL" | "OFF" | "NONE";
+        source: "LOCAL" | "NONE";
         barcode?: string;
         name?: string;
         brand?: string;
@@ -28,6 +28,14 @@ export type ChatResponse =
       mode: "CONSULT";
       reply: string;
     };
+
+export type ChatHistoryMessage = {
+  id: number;
+  sender: "USER" | "BOT";
+  text: string;
+  safety?: "SAFE" | "UNSAFE" | null;
+  createdAt: string;
+};
 
 const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
 
@@ -48,5 +56,10 @@ apiClient.interceptors.request.use(async (config) => {
 
 export const sendChatMessage = async (payload: ChatRequest): Promise<ChatResponse> => {
   const response = await apiClient.post<ChatResponse>("/chat", payload);
+  return response.data;
+};
+
+export const getChatHistory = async (): Promise<ChatHistoryMessage[]> => {
+  const response = await apiClient.get<ChatHistoryMessage[]>("/chat/history");
   return response.data;
 };

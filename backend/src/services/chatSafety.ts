@@ -7,7 +7,7 @@ export type AllergenTerm = {
 };
 
 export type ProductLookup = {
-  source: "LOCAL" | "OFF" | "NONE";
+  source: "LOCAL" | "NONE";
   barcode?: string;
   name?: string;
   brand?: string;
@@ -149,6 +149,29 @@ export const buildConsultationPrompt = (message: string) =>
     "นี่คือโหมดให้คำปรึกษาทั่วไป ไม่ต้องสรุปผล SAFE/UNSAFE",
     "ตอบเป็นภาษาไทยที่เข้าใจง่าย เห็นอกเห็นใจ และให้คำแนะนำทั่วไปเกี่ยวกับการหลีกเลี่ยงสารก่อภูมิแพ้",
     "ถ้าคำถามดูเหมือนถามถึงสินค้าเฉพาะ แต่ยังไม่มีข้อมูลสินค้า ให้ขอข้อมูลเพิ่ม เช่น บาร์โค้ดหรือชื่อสินค้าให้ชัดเจน",
+  ].join("\n");
+
+export const isGreetingMessage = (message: string) => {
+  const normalized = normalizeText(message);
+  const greetings = [
+    "สวัสดี",
+    "สวัสดีครับ",
+    "สวัสดีค่ะ",
+    "หวัดดี",
+    "หวัดดีครับ",
+    "หวัดดีค่ะ",
+    "hello",
+    "hi",
+  ];
+
+  return greetings.some((greeting) => normalized === normalizeText(greeting));
+};
+
+export const buildGreetingReply = () =>
+  [
+    "สวัสดี ฉันช่วยให้คำปรึกษาทั่วไปเกี่ยวกับการหลีกเลี่ยงสารก่อภูมิแพ้ได้",
+    "ถ้าต้องการให้ช่วยประเมินสินค้า คุณส่งชื่อสินค้าหรือบาร์โค้ดมาได้เลย",
+    "หรือถ้ามีข้อสงสัยเรื่องการหลีกเลี่ยงสารก่อภูมิแพ้ ก็ถามต่อได้ทันที",
   ].join("\n");
 
 export const isListRequest = (message: string) => {

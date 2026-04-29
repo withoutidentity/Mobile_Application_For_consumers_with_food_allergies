@@ -1,50 +1,78 @@
-# Welcome to your Expo app 👋
+# Frontend - Mobile Application For Consumers With Food Allergies
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## 1. อธิบายโปรเจคนี้
 
-## Get started
+Frontend เป็นแอปพลิเคชันมือถือสำหรับผู้บริโภคที่มีอาการแพ้อาหาร ใช้สำหรับค้นหา/สแกนสินค้า ตรวจสอบส่วนผสมและสารก่อภูมิแพ้ ดูข้อมูลอาการแพ้ จัดการโปรไฟล์ผู้ใช้ และพูดคุยกับระบบแชทเพื่อช่วยประเมินความปลอดภัยของอาหารเบื้องต้น
 
-1. Install dependencies
+## 2. Tech Stack
 
-   ```bash
-   npm install
-   ```
+- Expo
+- React Native
+- TypeScript
+- Expo Router
+- NativeWind / Tailwind CSS
+- Axios
+- TanStack React Query
+- AsyncStorage
+- Expo Camera / Image Picker
 
-2. Start the app
+## 3. Feature
 
-   ```bash
-   npx expo start
-   ```
+- สมัครสมาชิกและเข้าสู่ระบบ
+- รีเซ็ตรหัสผ่านและเปลี่ยนรหัสผ่าน
+- จัดการโปรไฟล์ผู้ใช้และข้อมูลการแพ้อาหาร
+- แสดงรายการสารก่อภูมิแพ้และคำแนะนำอาการเบื้องต้น
+- ค้นหาและดูรายละเอียดสินค้า
+- สแกนสินค้าและบันทึกประวัติการสแกน
+- แชทช่วยประเมินความปลอดภัยของอาหาร
+- หน้าสำหรับผู้ดูแลระบบในการจัดการข้อมูลสินค้า/สารก่อภูมิแพ้
 
-In the output, you'll find options to open the app in a
+## 4. Installation & Setup
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+ติดตั้ง dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+สร้างไฟล์ `.env` ในโฟลเดอร์ `frontend`
 
-## Learn more
+```env
+EXPO_PUBLIC_API_URL=http://localhost:3000
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+ถ้ารันบนมือถือจริง ให้เปลี่ยน `localhost` เป็น IP ของเครื่องที่รัน backend เช่น
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```env
+EXPO_PUBLIC_API_URL=http://192.168.1.10:3000
+```
 
-## Join the community
+เริ่มรันแอป
 
-Join our community of developers creating universal apps.
+```bash
+npm run start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+รันบน Android
+
+```bash
+npm run android
+```
+
+รันบน iOS
+
+```bash
+npm run ios
+```
+
+รันบน Web
+
+```bash
+npm run web
+```
+
+ตรวจสอบ lint
+
+```bash
+npm run lint
+```

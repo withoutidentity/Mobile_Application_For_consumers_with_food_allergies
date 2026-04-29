@@ -1,6 +1,7 @@
 import { Product, UserProfile } from '@/types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resolveProductImageUri } from '@/utils/productImage';
  
 const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
 
@@ -77,6 +78,24 @@ export const updateUserAllergens = async (
   await apiClient.put('/users/me/allergies', { allergies });
 };
 
+export const updateMyProfile = async (payload: {
+  name: string;
+  emergencyContact?: string;
+  dietaryRestrictions: string[];
+}): Promise<UserProfile> => {
+  const response = await apiClient.put<BackendUser>('/users/me', payload);
+  const user = response.data;
+
+  return {
+    name: user.name,
+    role: user.role,
+    email: user.email,
+    emergencyContact: user.emergencyContact || undefined,
+    dietaryRestrictions: user.dietaryRestrictions,
+    allergens: user.allergies.map((a) => ({ allergenId: a.allergen.id, severity: a.severity })),
+  };
+};
+
 export const addScanToHistory = async (productId: number): Promise<void> => {
   try {
     await apiClient.post('/users/me/history', { productId });
@@ -99,7 +118,7 @@ export const getScanHistory = async (): Promise<Product[]> => {
       return {
         ...product,
         id: product.id,
-        image: product.imageUrl,
+        image: resolveProductImageUri(product.imageUrl),
         allergenWarnings: allergenWarnings,
       };
     });
